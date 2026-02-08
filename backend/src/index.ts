@@ -1,4 +1,6 @@
 ﻿import crypto from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
 import express, { type Request, type Response } from "express";
 import cors from "cors";
 import { db, initDatabase } from "./db";
@@ -29,6 +31,10 @@ app.use(
 app.use(express.json());
 
 initDatabase();
+
+app.get("/api/health", (_req, res) => {
+  res.json({ ok: true });
+});
 
 const TOKEN_TTL_MS = 1000 * 60 * 60 * 24 * 7;
 const AUTH_RATE_LIMIT_WINDOW_MS = 1000 * 60 * 15;
@@ -609,7 +615,19 @@ app.post("/api/prediction/next", (req, res) => {
   }
 });
 
-const PORT = 4000;
+const frontendDistPath = path.resolve(__dirname, "../../frontend/dist");
+if (fs.existsSync(frontendDistPath)) {
+  app.use(express.static(frontendDistPath));
+  app.get(/^\/(?!api).*/, (_req, res) => {
+    res.sendFile(path.join(frontendDistPath, "index.html"));
+  });
+}
+
+const PORT = Number(process.env.PORT ?? 4000);
 app.listen(PORT, () => {
-  console.log(`Backend listening on http://localhost:${PORT}`);
+  console.log(`Backend listening on port ${PORT}`);
 });
+
+
+
+

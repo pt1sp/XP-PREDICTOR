@@ -112,6 +112,22 @@ function migrateLoginIdColumn() {
 
 export function initDatabase() {
   db.exec(`
+    CREATE TABLE IF NOT EXISTS "Session" (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId INTEGER,
+      playedAt TEXT NOT NULL,
+      stage1 TEXT NOT NULL,
+      stage2 TEXT NOT NULL,
+      weapon TEXT NOT NULL,
+      wins INTEGER NOT NULL DEFAULT 0,
+      losses INTEGER NOT NULL DEFAULT 0,
+      fatigue INTEGER NOT NULL DEFAULT 3,
+      irritability INTEGER NOT NULL DEFAULT 3,
+      memo TEXT,
+      createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(userId) REFERENCES users(id) ON DELETE SET NULL
+    );
+
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       login_id TEXT NOT NULL UNIQUE,
