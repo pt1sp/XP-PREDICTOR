@@ -275,11 +275,11 @@ export function getWeaponCategory(weaponName: string): WeaponCategory | undefine
 export function getStageImagePath(stageName: string): string | undefined {
   if (!stageName) return undefined;
   const fileName = `${stageName}.png`;
-  return `./src/assets/stages/${fileName}`;
+  return `/assets/stages/${fileName}`;
 }
 
 export function getWeaponImagePath(weaponName: string): string | undefined {
   if (!weaponName) return undefined;
   const fileName = weaponName.replace(/^\./, '_') + '.png';
-  return `./src/assets/weapons/${fileName}`;
+  return `/assets/weapons/${fileName}`;
 }
