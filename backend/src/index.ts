@@ -615,15 +615,17 @@ app.post("/api/prediction/next", (req, res) => {
   }
 });
 
-const frontendDistPath = path.resolve(__dirname, "../../frontend/dist");
-if (fs.existsSync(frontendDistPath)) {
-  app.use(express.static(frontendDistPath));
-  app.get(/^\/(?!api).*/, (_req, res) => {
-    res.sendFile(path.join(frontendDistPath, "index.html"));
-  });
+const frontendDistPath = path.resolve(process.cwd(), "frontend/dist");
+if (!fs.existsSync(frontendDistPath)) {
+  throw new Error(`Frontend dist not found at ${frontendDistPath}. Build frontend before starting server.`);
 }
 
-const PORT = Number(process.env.PORT ?? 4000);
+app.use(express.static(frontendDistPath));
+app.get(/^\/(?!api|assets\/).*/, (_req, res) => {
+  res.sendFile(path.join(frontendDistPath, "index.html"));
+});
+
+const PORT = Number(process.env.PORT ?? 10000);
 app.listen(PORT, () => {
   console.log(`Backend listening on port ${PORT}`);
 });
