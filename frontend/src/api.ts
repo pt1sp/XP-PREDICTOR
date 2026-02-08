@@ -1,4 +1,6 @@
-﻿const API_BASE_URL = "http://localhost:4000";
+﻿const API_BASE_URL =
+  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim() ||
+  (import.meta.env.DEV ? "http://localhost:4000" : "");
 let authToken: string | null = null;
 
 export type UserRole = "USER" | "ADMIN";
@@ -174,3 +176,7 @@ export async function fetchAdminSessions(userId?: number): Promise<SessionWithUs
   const query = userId ? `?userId=${encodeURIComponent(userId)}` : "";
   return requestJson<SessionWithUser[]>(`/api/admin/sessions${query}`);
 }
+
+
+
+
