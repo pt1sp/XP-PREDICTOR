@@ -2,7 +2,7 @@ services:
   - type: web
     name: xp-predictor
     runtime: docker
-    plan: free
+    plan: starter
     autoDeploy: true
     healthCheckPath: /api/health
     envVars:
