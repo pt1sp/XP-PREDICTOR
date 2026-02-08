@@ -1,6 +1,8 @@
 # Root-level ignores for monorepo layout
 .env
 .env.*
+!.env.example
+!**/.env.example
 *.log
 
 # Dependencies
