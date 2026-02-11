@@ -1,6 +1,7 @@
 ﻿import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import "dotenv/config";
 import express, { type Request, type Response } from "express";
 import cors from "cors";
 import { db, initDatabase } from "./db";
@@ -615,21 +616,20 @@ app.post("/api/prediction/next", (req, res) => {
   }
 });
 
-const frontendDistPath = path.resolve(process.cwd(), "frontend/dist");
-if (!fs.existsSync(frontendDistPath)) {
-  throw new Error(`Frontend dist not found at ${frontendDistPath}. Build frontend before starting server.`);
-}
+const projectRoot = path.resolve(__dirname, "../../");
+const frontendDistPath = path.join(projectRoot, "frontend/dist");
 
-app.use(express.static(frontendDistPath));
-app.get(/^\/(?!api|assets\/).*/, (_req, res) => {
-  res.sendFile(path.join(frontendDistPath, "index.html"));
-});
+if (fs.existsSync(frontendDistPath)) {
+  app.use(express.static(frontendDistPath));
+  app.get(/^\/(?!api|assets\/).*/, (_req, res) => {
+    res.sendFile(path.join(frontendDistPath, "index.html"));
+  });
+} else {
+  console.warn(`Frontend dist not found at ${frontendDistPath}; starting API server only.`);
+}
 
 const PORT = Number(process.env.PORT ?? 10000);
 app.listen(PORT, () => {
   console.log(`Backend listening on port ${PORT}`);
 });
-
-
-
 
