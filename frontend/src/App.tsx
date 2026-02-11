@@ -100,7 +100,7 @@ export default function App() {
       <div className="appContainer">
         <header className="appHeader">
           <div className="headerContent">
-            <h1 className="appTitle">戦績予測くん</h1>
+            <h1 className="appTitle">勝率予測くん</h1>
             <div className="headerBadge">AUTH</div>
           </div>
         </header>
@@ -120,7 +120,7 @@ export default function App() {
     <div className="appContainer">
       <header className="appHeader">
         <div className="headerContent headerUserRow">
-          <h1 className="appTitle">戦績予測くん</h1>
+          <h1 className="appTitle">勝率予測くん</h1>
           <div className="headerBadge">{user.role}</div>
           <div className="headerUserInfo">
             <span>{user.loginId}</span>
