@@ -1,7 +1,17 @@
-﻿const API_BASE_URL =
+const API_BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim() ||
   (import.meta.env.DEV ? "http://localhost:4000" : "");
-let authToken: string | null = null;
+const AUTH_TOKEN_STORAGE_KEY = "xp_predictor.authToken";
+
+function readStoredAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  const stored = window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+  if (!stored) return null;
+  const token = stored.trim();
+  return token ? token : null;
+}
+
+let authToken: string | null = readStoredAuthToken();
 
 export type UserRole = "USER" | "ADMIN";
 
@@ -70,11 +80,20 @@ export type AdminUser = {
 };
 
 export function setAuthToken(token: string) {
-  authToken = token;
+  const normalized = token.trim();
+  authToken = normalized || null;
+  if (typeof window === "undefined") return;
+  if (authToken) {
+    window.localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, authToken);
+    return;
+  }
+  window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
 }
 
 export function clearAuthToken() {
   authToken = null;
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
 }
 
 export function hasAuthToken() {
@@ -176,6 +195,7 @@ export async function fetchAdminSessions(userId?: number): Promise<SessionWithUs
   const query = userId ? `?userId=${encodeURIComponent(userId)}` : "";
   return requestJson<SessionWithUser[]>(`/api/admin/sessions${query}`);
 }
+
 
 
 
