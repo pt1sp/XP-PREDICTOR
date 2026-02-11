@@ -110,9 +110,9 @@ function toSessionRecord(row: SessionRow): SessionRecord {
 function parseBearerToken(req: Request): string | null {
   const header = req.header("authorization");
   if (!header) return null;
-  const [scheme, token] = header.split(" ");
-  if (scheme?.toLowerCase() !== "bearer" || !token) return null;
-  return token;
+  const match = header.match(/^Bearer\s+(.+)$/i);
+  if (!match) return null;
+  return match[1].trim();
 }
 
 function hashPassword(password: string): string {
@@ -253,9 +253,10 @@ function ensureBuiltinAdminAccount() {
   const passwordHash = hashPassword(BUILTIN_ADMIN_PASSWORD);
 
   if (existing) {
-    if (existing.role !== "ADMIN") {
-      db.prepare(`UPDATE users SET role = 'ADMIN' WHERE id = ?`).run(existing.id);
-    }
+    db.prepare(`UPDATE users SET role = 'ADMIN', password_hash = ? WHERE id = ?`).run(
+      passwordHash,
+      existing.id
+    );
     return;
   }
 
@@ -292,7 +293,7 @@ app.post("/api/auth/register", async (req, res) => {
     if (!loginId || password.length < 8) {
       recordAuthFailure(authKey);
       return res.status(400).json({
-        error: "loginId と password(8文字以上) が必要です",
+        error: "loginId and password (min 8 chars) are required",
       });
     }
 
@@ -302,7 +303,7 @@ app.post("/api/auth/register", async (req, res) => {
 
     if (existing) {
       recordAuthFailure(authKey);
-      return res.status(400).json({ error: "登録に失敗しました" });
+      return res.status(400).json({ error: "Registration failed" });
     }
 
     const role: Role = "USER";
@@ -345,7 +346,7 @@ app.post("/api/auth/login", async (req, res) => {
 
     if (!loginId || !password) {
       recordAuthFailure(authKey);
-      return res.status(400).json({ error: "loginId と password が必要です" });
+      return res.status(400).json({ error: "loginId and password are required" });
     }
 
     const user = db
@@ -354,7 +355,7 @@ app.post("/api/auth/login", async (req, res) => {
 
     if (!user || !verifyPassword(password, user.password_hash)) {
       recordAuthFailure(authKey);
-      return res.status(401).json({ error: "ID またはパスワードが不正です" });
+      return res.status(401).json({ error: "Invalid login ID or password" });
     }
 
     const token = issueToken(user.id);
@@ -513,7 +514,7 @@ app.post("/api/sessions", (req, res) => {
 
     if (!playedAt || !stage1 || !stage2 || !weapon) {
       return res.status(400).json({
-        error: "playedAt, stage1, stage2, weapon は必須です",
+        error: "playedAt, stage1, stage2, and weapon are required",
       });
     }
 
@@ -578,7 +579,7 @@ app.post("/api/prediction/next", (req, res) => {
     const { stage1, stage2, weapon, fatigue, irritability, userId } = req.body ?? {};
 
     if (!stage1 || !stage2 || !weapon) {
-      return res.status(400).json({ error: "stage1, stage2, weapon は必須です" });
+      return res.status(400).json({ error: "stage1, stage2, and weapon are required" });
     }
 
     if (
@@ -589,7 +590,7 @@ app.post("/api/prediction/next", (req, res) => {
       irritability < 1 ||
       irritability > 5
     ) {
-      return res.status(400).json({ error: "fatigue と irritability は 1-5 の数値が必要です" });
+      return res.status(400).json({ error: "fatigue and irritability must be numbers between 1 and 5" });
     }
 
     const requestedUserId = Number(userId);
