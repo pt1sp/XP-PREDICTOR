@@ -1,6 +1,6 @@
 ﻿import { useState, useMemo } from "react";
 import { createSession } from "./api";
-import type { SessionInput } from "./api";
+import type { Rule, SessionInput } from "./api";
 import {
   STAGES,
   WEAPON_CATEGORIES,
@@ -11,12 +11,17 @@ import {
 
 type PickerKind = "stage1" | "stage2" | "weapon";
 type CounterKey = "wins" | "losses";
-type MentalKey = "fatigue" | "irritability";
+type MentalKey = "fatigue" | "irritability" | "concentration";
 type DateParts = { y: string; m: string; day: string; h: string };
 type DatePartKey = keyof DateParts;
 
 const MENTAL_SCALE = [1, 2, 3, 4, 5] as const;
 const QUICK_COUNTER_DELTAS = [-10, -5, +5, +10] as const;
+const XP_MIN = 2000;
+const XP_MAX = 5000;
+const XP_STEP = 10;
+const XP_QUICK_DELTAS = [-100, -50, +50, +100] as const;
+const RULE_OPTIONS: Rule[] = ["エリア", "ヤグラ", "ホコ", "アサリ"];
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
@@ -55,6 +60,7 @@ type RecordViewProps = {
 function buildInitialForm(): SessionInput {
   return {
     playedAt: toLocalHour00(),
+    rule: "エリア",
     stage1: "",
     stage2: "",
     weapon: "",
@@ -62,6 +68,9 @@ function buildInitialForm(): SessionInput {
     losses: 0,
     fatigue: 3,
     irritability: 3,
+    concentration: 3,
+    startXp: 2500,
+    endXp: 2500,
     memo: "",
   };
 }
@@ -123,6 +132,17 @@ export default function RecordView({ onRecordSaved }: RecordViewProps) {
     updateForm(key, clampInt(value, 1, 5));
   };
 
+  const setXp = (key: "startXp" | "endXp", rawValue: string) => {
+    updateForm(key, clampInt(Number(rawValue || XP_MIN), XP_MIN, XP_MAX));
+  };
+
+  const adjustXp = (key: "startXp" | "endXp", delta: number) => {
+    setForm((prev) => ({
+      ...prev,
+      [key]: clampInt(prev[key] + delta, XP_MIN, XP_MAX),
+    }));
+  };
+
   const commitPlayedAt = () => {
     if (!dateText.y || !dateText.m || !dateText.day || !dateText.h) return;
 
@@ -145,6 +165,12 @@ export default function RecordView({ onRecordSaved }: RecordViewProps) {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setMsg("");
+
+    if (form.stage1 && form.stage2 && form.stage1 === form.stage2) {
+      setMsg("ステージ1とステージ2は別のステージを選択してください");
+      return;
+    }
+
     try {
       await createSession({
         ...form,
@@ -152,6 +178,9 @@ export default function RecordView({ onRecordSaved }: RecordViewProps) {
         losses: Number(form.losses),
         fatigue: Number(form.fatigue),
         irritability: Number(form.irritability),
+        concentration: Number(form.concentration),
+        startXp: Number(form.startXp),
+        endXp: Number(form.endXp),
       });
       setSuccessModalOpen(true);
       onRecordSaved();
@@ -275,6 +304,32 @@ export default function RecordView({ onRecordSaved }: RecordViewProps) {
                 +1h
               </button>
             </div>
+          </div>
+
+          {/* ステージ選択 */}
+          <div className="formGroup">
+            <label className="formLabel">
+              <svg
+                className="labelIcon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+              >
+                <path d="M3 7h18M3 12h18M3 17h18" />
+              </svg>
+              ルール
+            </label>
+            <select
+              className="filterSelect"
+              value={form.rule}
+              onChange={(e) => updateForm("rule", e.target.value as Rule)}
+            >
+              {RULE_OPTIONS.map((rule) => (
+                <option key={rule} value={rule}>
+                  {rule}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* ステージ選択 */}
@@ -575,6 +630,127 @@ export default function RecordView({ onRecordSaved }: RecordViewProps) {
                 <span>激怒</span>
               </div>
             </div>
+
+            <div className="mentalCard">
+              <div className="mentalHeader">
+                <svg
+                  className="mentalIcon"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 6v6l4 2" />
+                </svg>
+                <span className="mentalLabel">集中力</span>
+              </div>
+              <div className="scaleControl">
+                {MENTAL_SCALE.map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    className={`scaleBtn ${form.concentration === n ? "active" : ""}`}
+                    onClick={() => setScale("concentration", n)}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+              <div className="scaleHint">
+                <span>散漫</span>
+                <span>集中</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="formGroup">
+            <label className="formLabel">
+              <svg
+                className="labelIcon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+              >
+                <path d="M12 1v22M1 12h22" />
+              </svg>
+              XP
+            </label>
+            <div className="numberInputGrid">
+              <div className="numberInputCard">
+                <div className="numberInputRow">
+                  <div className="numberInputLabel">開始XP</div>
+                  <div className="numberInputValue">{form.startXp}</div>
+                </div>
+                <input
+                  className="numberInput"
+                  type="number"
+                  min={XP_MIN}
+                  max={XP_MAX}
+                  step={XP_STEP}
+                  inputMode="numeric"
+                  value={form.startXp}
+                  onChange={(e) => setXp("startXp", e.target.value)}
+                />
+                <input
+                  className="xpRange"
+                  type="range"
+                  min={XP_MIN}
+                  max={XP_MAX}
+                  step={XP_STEP}
+                  value={form.startXp}
+                  onChange={(e) => setXp("startXp", e.target.value)}
+                />
+                <div className="xpQuickRow">
+                  {XP_QUICK_DELTAS.map((delta) => (
+                    <button
+                      key={`start-${delta}`}
+                      type="button"
+                      className="xpQuickBtn"
+                      onClick={() => adjustXp("startXp", delta)}
+                    >
+                      {delta > 0 ? `+${delta}` : delta}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="numberInputCard">
+                <div className="numberInputRow">
+                  <div className="numberInputLabel">終了XP</div>
+                  <div className="numberInputValue">{form.endXp}</div>
+                </div>
+                <input
+                  className="numberInput"
+                  type="number"
+                  min={XP_MIN}
+                  max={XP_MAX}
+                  step={XP_STEP}
+                  inputMode="numeric"
+                  value={form.endXp}
+                  onChange={(e) => setXp("endXp", e.target.value)}
+                />
+                <input
+                  className="xpRange"
+                  type="range"
+                  min={XP_MIN}
+                  max={XP_MAX}
+                  step={XP_STEP}
+                  value={form.endXp}
+                  onChange={(e) => setXp("endXp", e.target.value)}
+                />
+                <div className="xpQuickRow">
+                  {XP_QUICK_DELTAS.map((delta) => (
+                    <button
+                      key={`end-${delta}`}
+                      type="button"
+                      className="xpQuickBtn"
+                      onClick={() => adjustXp("endXp", delta)}
+                    >
+                      {delta > 0 ? `+${delta}` : delta}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* メモ */}
@@ -680,6 +856,10 @@ export default function RecordView({ onRecordSaved }: RecordViewProps) {
                           ? form.stage1
                           : form.stage2;
 
+                    const stageDuplicate =
+                      (pickerOpen === "stage1" && name === form.stage2) ||
+                      (pickerOpen === "stage2" && name === form.stage1);
+
                     const active = name === current;
 
                     return (
@@ -687,13 +867,17 @@ export default function RecordView({ onRecordSaved }: RecordViewProps) {
                         key={name}
                         type="button"
                         className={`pickerItem ${active ? "active" : ""}`}
+                        disabled={stageDuplicate}
                         style={{
                           backgroundImage:
                             pickerOpen === "weapon"
                               ? `url(${getWeaponImagePath(name)})`
                               : `url(${getStageImagePath(name)})`,
+                          opacity: stageDuplicate ? 0.45 : undefined,
+                          cursor: stageDuplicate ? "not-allowed" : undefined,
                         }}
                         onClick={() => {
+                          if (stageDuplicate) return;
                           if (pickerOpen === "weapon")
                             updateForm("weapon", name);
                           if (pickerOpen === "stage1")

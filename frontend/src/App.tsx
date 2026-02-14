@@ -1,7 +1,8 @@
-﻿import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import "./App.css";
 import {
   clearAuthToken,
+  deleteSession,
   fetchMe,
   fetchSessions,
   hasAuthToken,
@@ -69,6 +70,16 @@ export default function App() {
 
   const handleRecordSaved = () => {
     void reload();
+  };
+
+  const handleDeleteSession = async (sessionId: number) => {
+    try {
+      await deleteSession(sessionId);
+      await reload();
+    } catch (e) {
+      setMsg(`削除に失敗: ${String(e)}`);
+      throw e;
+    }
   };
 
   const handleLogout = async () => {
@@ -142,7 +153,9 @@ export default function App() {
 
         {currentView === "predict" && <PredictView />}
         {currentView === "record" && <RecordView onRecordSaved={handleRecordSaved} />}
-        {currentView === "history" && <HistoryView sessions={sessions} />}
+        {currentView === "history" && (
+          <HistoryView sessions={sessions} onDeleteSession={handleDeleteSession} />
+        )}
         {currentView === "admin" && isAdmin && <AdminView currentUserId={user.id} />}
       </main>
     </div>
