@@ -1,10 +1,11 @@
-import { useState, useMemo, useEffect, type CSSProperties } from "react";
+﻿import { useState, useMemo, useEffect, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import { fetchPredictionByCondition } from "./api";
-import type { Prediction, PredictionConditionInput } from "./api";
+import type { Prediction, PredictionConditionInput, Rule } from "./api";
 import { STAGES, WEAPON_CATEGORIES, getWeaponCategory, getStageImagePath, getWeaponImagePath } from "./Constants";
 
 type PickerKind = "stage1" | "stage2" | "weapon";
-type MentalKey = "fatigue" | "irritability";
+type MentalKey = "fatigue" | "irritability" | "concentration";
 type SparkleStyle = CSSProperties & { "--delay": string; "--angle": string };
 
 type AnalysisPhase = "idle" | "analyzing" | "calculating" | "complete";
@@ -14,9 +15,18 @@ const ANALYSIS_DELAY_MS = 1600;
 const CALCULATION_DELAY_MS = 2000;
 const COMPLETE_DELAY_MS = 500;
 const STAT_STEP_DELAY_MS = 800;
+const XP_MIN = 2000;
+const XP_MAX = 5000;
+const XP_STEP = 10;
+const XP_QUICK_DELTAS = [-100, -50, +50, +100] as const;
+const RULE_OPTIONS: Rule[] = ["エリア", "ヤグラ", "ホコ", "アサリ"];
 
 function pct(x: number) {
   return `${Math.round(x * 1000) / 10}%`;
+}
+
+function signed(x: number) {
+  return `${x >= 0 ? "+" : ""}${Math.round(x)}`;
 }
 
 // カウントアップ用のカスタムフック
@@ -57,11 +67,14 @@ function useCountUp(target: number, duration: number, shouldStart: boolean) {
 
 export default function PredictView() {
   const [condition, setCondition] = useState<PredictionConditionInput>({
+    rule: "エリア",
     stage1: "",
     stage2: "",
     weapon: "",
     fatigue: 3,
     irritability: 3,
+    concentration: 3,
+    startXp: 2500,
   });
 
   const [pred, setPred] = useState<Prediction | null>(null);
@@ -77,6 +90,14 @@ export default function PredictView() {
   const [showStats, setShowStats] = useState(false);
   const [currentStat, setCurrentStat] = useState(0);
 
+  useEffect(() => {
+    if (!pickerOpen) return;
+    document.body.classList.add("modal-open");
+    return () => {
+      document.body.classList.remove("modal-open");
+    };
+  }, [pickerOpen]);
+
   const stageCandidates = useMemo(() => {
     const q = pickerQuery.trim().toLowerCase();
     if (!q) return [...STAGES];
@@ -90,6 +111,14 @@ export default function PredictView() {
     if (!q) return list;
     return list.filter((w) => w.toLowerCase().includes(q));
   }, [weaponCat, pickerQuery]);
+  const matrixColumns = useMemo(
+    () =>
+      Array.from({ length: 20 }, (_, i) => ({
+        left: `${i * 5}%`,
+        text: Math.random().toString(36).substring(2, 15),
+      })),
+    []
+  );
 
   const clampInt = (v: number, min: number, max: number) =>
     Math.max(min, Math.min(max, Math.trunc(v)));
@@ -106,12 +135,29 @@ export default function PredictView() {
     setConditionValue(key, next);
   };
 
+  const setStartXp = (rawValue: string) => {
+    setConditionValue("startXp", clampInt(Number(rawValue || XP_MIN), XP_MIN, XP_MAX));
+  };
+
+  const adjustStartXp = (delta: number) => {
+    setCondition((prev) => ({
+      ...prev,
+      startXp: clampInt(prev.startXp + delta, XP_MIN, XP_MAX),
+    }));
+  };
+
   // カウントアップアニメーション
   const animatedBase = useCountUp(pred?.baseWinRate ?? 0, 600, showStats && currentStat >= 1);
   const animatedWeapon = useCountUp(pred?.weaponWinRate ?? 0, 600, showStats && currentStat >= 2);
   const animatedStage = useCountUp(pred?.stageWinRate ?? 0, 600, showStats && currentStat >= 3);
   const animatedPenalty = useCountUp(pred?.mentalPenalty ?? 0, 600, showStats && currentStat >= 4);
   const animatedFinal = useCountUp(pred?.predictedWinRate ?? 0, 800, showStats && currentStat >= 5);
+  const animatedXpDeltaAbs = useCountUp(
+    Math.abs(pred?.predictedXpDelta ?? 0),
+    800,
+    showStats && currentStat >= 5
+  );
+  const animatedXpDelta = (pred?.predictedXpDelta ?? 0) >= 0 ? animatedXpDeltaAbs : -animatedXpDeltaAbs;
 
   async function onPredict(e: React.FormEvent) {
     e.preventDefault();
@@ -121,8 +167,13 @@ export default function PredictView() {
     setCurrentStat(0);
 
     // バリデーション
-    if (!condition.stage1 || !condition.stage2 || !condition.weapon) {
-      setMsg("ステージと武器を選択してください");
+    if (!condition.rule || !condition.stage1 || !condition.stage2 || !condition.weapon) {
+      setMsg("ルール、ステージ、武器を選択してください");
+      return;
+    }
+
+    if (condition.stage1 === condition.stage2) {
+      setMsg("ステージ1とステージ2は別のステージを選択してください");
       return;
     }
 
@@ -130,15 +181,17 @@ export default function PredictView() {
     setAnalysisPhase("analyzing");
 
     try {
-      // フェーズ1: データ分析中 (800ms)
+      const predictionPromise = fetchPredictionByCondition(condition);
+
+      // フェーズ1: データ分析中
       await new Promise(resolve => setTimeout(resolve, ANALYSIS_DELAY_MS));
       setAnalysisPhase("calculating");
 
       // フェーズ2: 計算中
       await new Promise(resolve => setTimeout(resolve, CALCULATION_DELAY_MS));
 
-      // 実際のAPI呼び出し
-      const result = await fetchPredictionByCondition(condition);
+      // 演出待機と並列で取得したAPI結果を反映
+      const result = await predictionPromise;
       setPred(result);
 
       setAnalysisPhase("complete");
@@ -173,6 +226,27 @@ export default function PredictView() {
           </div>
 
           <form onSubmit={onPredict} className="inputForm">
+            {/* ステージ選択 */}
+            <div className="formGroup">
+              <label className="formLabel">
+                <svg className="labelIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M3 7h18M3 12h18M3 17h18" />
+                </svg>
+                ルール
+              </label>
+              <select
+                className="filterSelect"
+                value={condition.rule}
+                onChange={(e) => setConditionValue("rule", e.target.value as Rule)}
+              >
+                {RULE_OPTIONS.map((rule) => (
+                  <option key={rule} value={rule}>
+                    {rule}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* ステージ選択 */}
             <div className="formGroup">
               <label className="formLabel">
@@ -260,6 +334,54 @@ export default function PredictView() {
               </button>
             </div>
 
+            <div className="formGroup">
+              <label className="formLabel">
+                <svg className="labelIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M12 1v22M1 12h22" />
+                </svg>
+                開始XP
+              </label>
+              <div className="numberInputGrid single">
+                <div className="numberInputCard">
+                  <div className="numberInputRow">
+                    <div className="numberInputLabel">試合開始時のXP</div>
+                    <div className="numberInputValue">{condition.startXp}</div>
+                  </div>
+                  <input
+                    className="numberInput"
+                    type="number"
+                    min={XP_MIN}
+                    max={XP_MAX}
+                    step={XP_STEP}
+                    inputMode="numeric"
+                    value={condition.startXp}
+                    onChange={(e) => setStartXp(e.target.value)}
+                  />
+                  <input
+                    className="xpRange"
+                    type="range"
+                    min={XP_MIN}
+                    max={XP_MAX}
+                    step={XP_STEP}
+                    value={condition.startXp}
+                    onChange={(e) => setStartXp(e.target.value)}
+                  />
+                  <div className="xpQuickRow">
+                    {XP_QUICK_DELTAS.map((delta) => (
+                      <button
+                        key={`predict-xp-${delta}`}
+                        type="button"
+                        className="xpQuickBtn"
+                        onClick={() => adjustStartXp(delta)}
+                      >
+                        {delta > 0 ? `+${delta}` : delta}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* メンタル状態 */}
             <div className="mentalColumn">
               <div className="mentalCard">
@@ -313,6 +435,32 @@ export default function PredictView() {
                   <span>激怒</span>
                 </div>
               </div>
+
+              <div className="mentalCard">
+                <div className="mentalHeader">
+                  <svg className="mentalIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 6v6l4 2" />
+                  </svg>
+                  <span className="mentalLabel">集中力</span>
+                </div>
+                <div className="scaleControl">
+                  {MENTAL_SCALE.map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      className={`scaleBtn ${condition.concentration === n ? "active" : ""}`}
+                      onClick={() => setScale("concentration", n)}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+                <div className="scaleHint">
+                  <span>散漫</span>
+                  <span>集中</span>
+                </div>
+              </div>
             </div>
 
             {/* 予測ボタン */}
@@ -334,90 +482,100 @@ export default function PredictView() {
           </form>
 
           {/* ピッカーモーダル */}
-          {pickerOpen && (
-            <div
-              className="pickerOverlay"
-              onMouseDown={(e) => {
-                if (e.target === e.currentTarget) setPickerOpen(null);
-              }}
-            >
-              <div className="pickerModal">
-                <div className="pickerHeader">
-                  <div>
-                    <h3 className="pickerTitle">
-                      {pickerOpen === "weapon" ? "武器を選択" : "ステージを選択"}
-                    </h3>
-                    <p className="pickerSubtitle">
-                      {pickerOpen === "weapon"
-                        ? "カテゴリーから武器を選んでください"
-                        : "プレイするステージを選択してください"}
-                    </p>
+          {pickerOpen &&
+            createPortal(
+              <div
+                className="pickerOverlay"
+                onMouseDown={(e) => {
+                  if (e.target === e.currentTarget) setPickerOpen(null);
+                }}
+              >
+                <div className="pickerModal">
+                  <div className="pickerHeader">
+                    <div>
+                      <h3 className="pickerTitle">
+                        {pickerOpen === "weapon" ? "武器を選択" : "ステージを選択"}
+                      </h3>
+                      <p className="pickerSubtitle">
+                        {pickerOpen === "weapon"
+                          ? "カテゴリーから武器を選んでください"
+                          : "プレイするステージを選択してください"}
+                      </p>
+                    </div>
+                    <button className="closeBtn" type="button" onClick={() => setPickerOpen(null)}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                      <span className="closeBtnLabel">閉じる</span>
+                    </button>
                   </div>
-                  <button className="closeBtn" type="button" onClick={() => setPickerOpen(null)}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <line x1="18" y1="6" x2="6" y2="18" />
-                      <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                    <span className="closeBtnLabel">閉じる</span>
-                  </button>
-                </div>
 
-                {pickerOpen === "weapon" && (
-                  <div className="categoryTabs">
-                    {WEAPON_CATEGORIES.map((c) => (
-                      <button
-                        key={c.key}
-                        type="button"
-                        className={`categoryTab ${c.key === weaponCat ? "active" : ""}`}
-                        onClick={() => setWeaponCat(c.key)}
-                      >
-                        {c.label}
-                      </button>
-                    ))}
+                  {pickerOpen === "weapon" && (
+                    <div className="categoryTabs">
+                      {WEAPON_CATEGORIES.map((c) => (
+                        <button
+                          key={c.key}
+                          type="button"
+                          className={`categoryTab ${c.key === weaponCat ? "active" : ""}`}
+                          onClick={() => setWeaponCat(c.key)}
+                        >
+                          {c.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="pickerGrid">
+                    {(pickerOpen === "weapon" ? weaponCandidates : stageCandidates).map((name) => {
+                      const current =
+                        pickerOpen === "weapon"
+                          ? condition.weapon
+                          : pickerOpen === "stage1"
+                            ? condition.stage1
+                            : condition.stage2;
+
+                      const stageDuplicate =
+                        (pickerOpen === "stage1" && name === condition.stage2) ||
+                        (pickerOpen === "stage2" && name === condition.stage1);
+
+                      const active = name === current;
+
+                      return (
+                        <button
+                          key={name}
+                          type="button"
+                          className={`pickerItem ${active ? "active" : ""}`}
+                          disabled={stageDuplicate}
+                          style={{
+                            backgroundImage: pickerOpen === "weapon"
+                              ? `url(${getWeaponImagePath(name)})`
+                              : `url(${getStageImagePath(name)})`,
+                            opacity: stageDuplicate ? 0.45 : undefined,
+                            cursor: stageDuplicate ? "not-allowed" : undefined,
+                          }}
+                          onClick={() => {
+                            if (stageDuplicate) return;
+                            if (pickerOpen === "weapon") setConditionValue("weapon", name);
+                            if (pickerOpen === "stage1") setConditionValue("stage1", name);
+                            if (pickerOpen === "stage2") setConditionValue("stage2", name);
+                            setPickerOpen(null);
+                          }}
+                        >
+                          {active && (
+                            <svg className="checkIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          )}
+                          <span className="pickerItemText">{name}</span>
+                        </button>
+                      );
+                    })}
                   </div>
-                )}
-
-                <div className="pickerGrid">
-                  {(pickerOpen === "weapon" ? weaponCandidates : stageCandidates).map((name) => {
-                    const current =
-                      pickerOpen === "weapon"
-                        ? condition.weapon
-                        : pickerOpen === "stage1"
-                          ? condition.stage1
-                          : condition.stage2;
-
-                    const active = name === current;
-
-                    return (
-                      <button
-                        key={name}
-                        type="button"
-                        className={`pickerItem ${active ? "active" : ""}`}
-                        style={{
-                          backgroundImage: pickerOpen === "weapon"
-                            ? `url(${getWeaponImagePath(name)})`
-                            : `url(${getStageImagePath(name)})`,
-                        }}
-                        onClick={() => {
-                          if (pickerOpen === "weapon") setConditionValue("weapon", name);
-                          if (pickerOpen === "stage1") setConditionValue("stage1", name);
-                          if (pickerOpen === "stage2") setConditionValue("stage2", name);
-                          setPickerOpen(null);
-                        }}
-                      >
-                        {active && (
-                          <svg className="checkIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <polyline points="20 6 9 17 4 12" />
-                          </svg>
-                        )}
-                        <span className="pickerItemText">{name}</span>
-                      </button>
-                    );
-                  })}
                 </div>
-              </div>
-            </div>
-          )}
+              </div>,
+              document.body
+            )}
         </section>
       )}
 
@@ -473,9 +631,9 @@ export default function PredictView() {
             </div>
 
             <div className="matrixEffect">
-              {Array.from({ length: 20 }).map((_, i) => (
-                <div key={i} className="matrixColumn" style={{ left: `${i * 5}%` }}>
-                  {Math.random().toString(36).substring(2, 15)}
+              {matrixColumns.map((column, i) => (
+                <div key={i} className="matrixColumn" style={{ left: column.left }}>
+                  {column.text}
                 </div>
               ))}
             </div>
@@ -488,13 +646,14 @@ export default function PredictView() {
         <section className="predictionSection animated">
           <div className="sectionHeader">
             <h2 className="sectionTitle">予測結果</h2>
-            <div className="sectionSubtitle">この条件での予測勝率</div>
+            <div className="sectionSubtitle">この2時間スケジュールでの勝率とXP増減予測</div>
           </div>
 
           <div className="predictionContent">
             <div className={`mainPrediction ${currentStat >= 5 ? "visible" : ""}`}>
               <div className="predictionValue">{pct(animatedFinal)}</div>
               <div className="predictionLabel">予測勝率</div>
+              <div className="predictionLabel">予測XP増減 {signed(animatedXpDelta)}</div>
               <div className="sparkles">
                 {Array.from({ length: 12 }).map((_, i) => (
                   <div
@@ -543,9 +702,34 @@ export default function PredictView() {
                   <div className="statBarFill" style={{ width: `${animatedPenalty * 100}%` }}></div>
                 </div>
               </div>
+
+              <div className={`predStat ${currentStat >= 5 ? "visible" : ""}`}>
+                <div className="predStatLabel">勝率95%信頼区間</div>
+                <div className="predStatValue">
+                  {pct(pred.winRateInterval.low)} - {pct(pred.winRateInterval.high)}
+                </div>
+              </div>
+
+              <div className={`predStat ${currentStat >= 5 ? "visible" : ""}`}>
+                <div className="predStatLabel">XP増減95%信頼区間</div>
+                <div className="predStatValue">
+                  {signed(pred.xpDeltaInterval.low)} - {signed(pred.xpDeltaInterval.high)}
+                </div>
+              </div>
+
+              <div className={`predStat ${currentStat >= 5 ? "visible" : ""}`}>
+                <div className="predStatLabel">推奨判定</div>
+                <div className={`predStatValue ${pred.recommendPlay ? "" : "negative"}`}>
+                  {pred.recommendPlay ? "プレイ推奨" : "見送り推奨"}
+                </div>
+              </div>
             </div>
 
-            <div className={`predictionNote ${currentStat >= 5 ? "visible" : ""}`}>{pred.note}</div>
+            <div className={`predictionNote ${currentStat >= 5 ? "visible" : ""}`}>
+              {pred.advice}
+              <br />
+              {pred.note}
+            </div>
 
             {/* もう一度予測するボタン */}
             <div className={`resetButtonContainer ${currentStat >= 5 ? "visible" : ""}`}>
@@ -573,3 +757,7 @@ export default function PredictView() {
     </div>
   );
 }
+
+
+
+
