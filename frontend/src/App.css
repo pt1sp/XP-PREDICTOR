@@ -2438,6 +2438,26 @@ body.modal-open .appContainer {
 .headerUserRow {
   justify-content: space-between;
   width: 100%;
+  gap: var(--space-sm);
+}
+
+.headerUserRow .appTitle {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.headerUserRow .headerBadge,
+.headerUserRow .headerUserInfo,
+.headerUserRow .quickBtn {
+  flex-shrink: 0;
+}
+
+.headerUserRow .quickBtn {
+  width: auto;
+  margin-left: var(--space-sm);
 }
 
 .headerUserInfo {
@@ -2507,9 +2527,22 @@ body.modal-open .appContainer {
     display: none;
   }
 
+  .headerUserRow .quickBtn {
+    min-width: auto;
+    height: 2.4rem;
+    padding: 0 0.625rem;
+    font-size: 0.75rem;
+  }
+
   .adminListItem {
     flex-direction: column;
     align-items: flex-start;
+  }
+}
+
+@media (max-width: 980px) {
+  .headerUserRow .headerBadge {
+    display: none;
   }
 }
 
