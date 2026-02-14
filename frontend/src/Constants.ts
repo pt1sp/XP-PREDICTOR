@@ -267,19 +267,31 @@ export function getAllWeapons(): string[] {
   return WEAPON_CATEGORIES.flatMap(category => category.weapons);
 }
 
+const weaponCategoryMap = new Map<string, WeaponCategory>(
+  WEAPON_CATEGORIES.flatMap((category) =>
+    category.weapons.map((weapon) => [weapon, category] as const)
+  )
+);
+
+const imageExtension = (
+  (import.meta.env.VITE_ASSET_IMAGE_FORMAT as string | undefined)?.trim().toLowerCase() ===
+  "webp"
+)
+  ? "webp"
+  : "png";
+
 export function getWeaponCategory(weaponName: string): WeaponCategory | undefined {
-  return WEAPON_CATEGORIES.find(category => 
-    category.weapons.includes(weaponName)
-  );
+  return weaponCategoryMap.get(weaponName);
 }
+
 export function getStageImagePath(stageName: string): string | undefined {
   if (!stageName) return undefined;
-  const fileName = `${stageName}.png`;
+  const fileName = `${stageName}.${imageExtension}`;
   return `/assets/stages/${fileName}`;
 }
 
 export function getWeaponImagePath(weaponName: string): string | undefined {
   if (!weaponName) return undefined;
-  const fileName = weaponName.replace(/^\./, '_') + '.png';
+  const fileName = `${weaponName.replace(/^\./, "_")}.${imageExtension}`;
   return `/assets/weapons/${fileName}`;
 }
