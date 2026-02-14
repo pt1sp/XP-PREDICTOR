@@ -241,6 +241,16 @@ svg {
   width: 100%;
 }
 
+body.modal-open {
+  overflow: hidden;
+}
+
+body.modal-open .appContainer {
+  filter: blur(8px);
+  pointer-events: none;
+  user-select: none;
+}
+
 /* ========================================
    セクション共通スタイル
    ======================================== */
@@ -1139,7 +1149,7 @@ svg {
   align-items: center;
   justify-content: center;
   padding: var(--space-md);
-  z-index: 1000;
+  z-index: 5000;
   animation: fadeIn 0.2s ease-out;
 }
 
