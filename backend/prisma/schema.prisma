@@ -9,6 +9,7 @@ datasource db {
 model Session {
   id           Int      @id @default(autoincrement())
   playedAt     DateTime
+  rule         String
   stage1       String
   stage2       String
   weapon       String
@@ -16,6 +17,9 @@ model Session {
   losses       Int
   fatigue      Int      // 1-5
   irritability Int      // 1-5
+  concentration Int     // 1-5
+  startXp      Int
+  endXp        Int
   memo         String?
   createdAt    DateTime @default(now())
 }

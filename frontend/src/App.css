@@ -1,5 +1,5 @@
 /* ========================================
-   グローバルリセット & ベース設定
+   グローバルリセチE�� & ベ�Eス設宁E
    ======================================== */
 
 * {
@@ -9,40 +9,52 @@
 }
 
 :root {
-  /* カラーパレット - ダークモダン */
-  --color-bg: #0a0e1a;
-  --color-surface: #131825;
-  --color-surface-elevated: #1a1f30;
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-focus: rgba(99, 102, 241, 0.5);
+  /* カラーパレチE�� - スプラトゥーン風 */
+  --color-bg: #1a1a2e;
+  --color-surface: #2d2b55;
+  --color-surface-elevated: #3b3870;
+  --color-border: rgba(255, 255, 255, 0.12);
+  --color-border-focus: rgba(255, 45, 120, 0.5);
 
-  --color-text-primary: #f8fafc;
-  --color-text-secondary: #94a3b8;
-  --color-text-muted: #64748b;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #c4b5fd;
+  --color-text-muted: #8b7ec8;
 
-  --color-primary: #6366f1;
-  --color-primary-hover: #7c3aed;
-  --color-primary-light: rgba(99, 102, 241, 0.1);
+  /* スプラトゥーンカラー */
+  --color-pink: #FF2D78;
+  --color-green: #76FF03;
+  --color-orange: #FF6600;
+  --color-purple: #7B26FF;
+  --color-cyan: #00CED1;
+  --color-yellow: #E8FF00;
 
-  --color-success: #10b981;
-  --color-success-light: rgba(16, 185, 129, 0.1);
-  --color-error: #ef4444;
-  --color-error-light: rgba(239, 68, 68, 0.1);
-  --color-warning: #f59e0b;
+  --color-primary: #FF2D78;
+  --color-primary-hover: #FF6600;
+  --color-primary-light: rgba(255, 45, 120, 0.12);
 
-  /* グラデーション */
-  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --gradient-success: linear-gradient(135deg, #0ea5e9 0%, #22c55e 100%);
-  --gradient-card: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%);
+  --color-success: #76FF03;
+  --color-success-light: rgba(118, 255, 3, 0.12);
+  --color-error: #FF2D78;
+  --color-error-light: rgba(255, 45, 120, 0.12);
+  --color-warning: #FF6600;
+
+  /* グラチE�Eション */
+  --gradient-primary: linear-gradient(135deg, #FF2D78 0%, #FF6600 100%);
+  --gradient-success: linear-gradient(135deg, #76FF03 0%, #00CED1 100%);
+  --gradient-ink: linear-gradient(135deg, #7B26FF 0%, #FF2D78 50%, #76FF03 100%);
+  --gradient-card: linear-gradient(135deg, rgba(123, 38, 255, 0.08) 0%, rgba(255, 45, 120, 0.08) 100%);
 
   /* シャドウ */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.5);
   --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.6);
-  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
+  --shadow-glow: 0 0 20px rgba(255, 45, 120, 0.4);
+  --shadow-glow-green: 0 0 20px rgba(118, 255, 3, 0.4);
+  --shadow-glow-purple: 0 0 20px rgba(123, 38, 255, 0.4);
+  --shadow-glow-orange: 0 0 20px rgba(255, 102, 0, 0.4);
 
-  /* スペーシング */
+  /* スペ�Eシング */
   --space-xs: 0.25rem;
   --space-sm: 0.5rem;
   --space-md: 1rem;
@@ -50,11 +62,11 @@
   --space-xl: 2rem;
   --space-2xl: 3rem;
 
-  /* ボーダーラディウス */
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
+  /* ボ�EダーラチE��ウス�E�より丸く！E*/
+  --radius-sm: 0.75rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 2rem;
   --radius-full: 9999px;
 
   /* トランジション */
@@ -64,8 +76,7 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -82,25 +93,30 @@ svg {
 }
 
 /* ========================================
-   アプリケーションレイアウト
+   アプリケーションレイアウチE
    ======================================== */
 
 .appContainer {
   min-height: 100vh;
   background:
-    radial-gradient(ellipse at top, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
-    radial-gradient(ellipse at bottom, rgba(124, 58, 237, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse 80% 60% at 15% 10%, rgba(123, 38, 255, 0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 80% at 85% 20%, rgba(255, 45, 120, 0.05) 0%, transparent 70%),
+    radial-gradient(ellipse 70% 50% at 70% 80%, rgba(118, 255, 3, 0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 70% at 20% 75%, rgba(255, 102, 0, 0.04) 0%, transparent 70%),
+    radial-gradient(circle at 50% 50%, rgba(0, 206, 209, 0.03) 0%, transparent 60%),
     var(--color-bg);
+  position: relative;
 }
 
 .appHeader {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(10, 14, 26, 0.8);
+  background: rgba(4, 12, 30, 0.9);
   backdrop-filter: blur(20px) saturate(180%);
-  border-bottom: 1px solid var(--color-border);
-  padding: var(--space-lg) var(--space-md);
+  border-bottom: 1px solid rgba(124, 146, 184, 0.22);
+  padding: var(--space-sm) var(--space-md);
+  min-height: 4rem;
 }
 
 .headerContent {
@@ -113,23 +129,25 @@ svg {
 
 .appTitle {
   font-size: clamp(1.5rem, 4vw, 2rem);
-  font-weight: 800;
-  background: var(--gradient-primary);
+  line-height: 1;
+  font-weight: 900;
+  background: linear-gradient(135deg, #7f9bff 0%, #7f6dff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  letter-spacing: -0.02em;
+  letter-spacing: 0.02em;
 }
 
 .headerBadge {
   padding: var(--space-xs) var(--space-md);
-  background: var(--color-primary-light);
-  color: var(--color-primary);
+  background: rgba(73, 98, 168, 0.22);
+  color: #8ea6ff;
   border-radius: var(--radius-full);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+  border: 1px solid rgba(133, 157, 220, 0.32);
 }
 
 /* ========================================
@@ -137,25 +155,27 @@ svg {
    ======================================== */
 
 .navigation {
-  position: sticky;
-  top: 73px;
-  z-index: 90;
-  background: rgba(10, 14, 26, 0.9);
+  position: relative;
+  top: 0;
+  z-index: 150;
+  background: rgba(4, 12, 30, 0.86);
   backdrop-filter: blur(20px) saturate(180%);
-  border-bottom: 1px solid var(--color-border);
-  padding: var(--space-md);
+  border-bottom: 1px solid rgba(124, 146, 184, 0.2);
+  padding: var(--space-sm) var(--space-md);
+  margin-bottom: 0;
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: var(--space-sm);
 }
 
 .navBtn {
   height: 3rem;
   padding: 0 var(--space-xl);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: rgba(11, 24, 52, 0.82);
+  border: 1px solid rgba(135, 156, 196, 0.2);
   border-radius: var(--radius-lg);
-  color: var(--color-text-secondary);
+  color: #b6c4db;
   font-size: 0.9375rem;
   font-weight: 600;
   cursor: pointer;
@@ -174,33 +194,26 @@ svg {
 }
 
 .navBtn:hover {
-  background: var(--color-primary-light);
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  background: rgba(42, 65, 108, 0.46);
+  border-color: rgba(160, 181, 223, 0.34);
+  color: #d4e0f3;
+  transform: none;
+  box-shadow: none;
 }
 
 .navBtn.active {
-  background: var(--gradient-primary);
-  border-color: var(--color-primary);
+  background: linear-gradient(135deg, #6f7fff 0%, #6d63de 100%);
+  border-color: rgba(180, 195, 255, 0.5);
   color: white;
-  box-shadow: var(--shadow-glow);
+  box-shadow: 0 0 20px rgba(89, 120, 255, 0.45);
 }
 
 .navBtn.active::before {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: white;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  content: none;
 }
 
 /* ========================================
-   メインコンテンツ
+   メインコンチE��チE
    ======================================== */
 
 .mainContent {
@@ -236,10 +249,10 @@ svg {
 .predictionSection,
 .historySection {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 1px solid rgba(196, 181, 253, 0.28);
   border-radius: var(--radius-xl);
   padding: var(--space-xl);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), var(--shadow-lg);
   position: relative;
   overflow: hidden;
 }
@@ -252,8 +265,8 @@ svg {
   left: 0;
   right: 0;
   height: 4px;
-  background: var(--gradient-primary);
-  opacity: 0.8;
+  background: linear-gradient(90deg, #7B26FF 0%, #FF2D78 33%, #FF6600 66%, #76FF03 100%);
+  opacity: 0.9;
 }
 
 .sectionHeader {
@@ -300,10 +313,10 @@ svg {
 .labelIcon {
   width: 1rem;
   height: 1rem;
-  stroke: var(--color-primary);
+  stroke: var(--color-orange);
 }
 
-/* PC表示時は2カラムレイアウト */
+/* PC表示時�E2カラムレイアウチE*/
 @media (min-width: 1025px) {
   .inputForm {
     grid-template-columns: repeat(2, 1fr);
@@ -332,7 +345,7 @@ svg {
 }
 
 /* ========================================
-   日時入力
+   日時�E劁E
    ======================================== */
 
 .dateTimeGroup {
@@ -356,7 +369,7 @@ svg {
 
 .customDateInputs:focus-within {
   border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 3px rgba(255, 45, 120, 0.15);
 }
 
 .datePartInput {
@@ -406,7 +419,7 @@ svg {
 
 .timeInputWrapper:focus-within {
   border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 3px rgba(255, 45, 120, 0.15);
 }
 
 .timeInput {
@@ -454,13 +467,13 @@ svg {
 }
 
 .quickBtn:hover {
-  background: var(--color-primary-light);
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+  background: rgba(255, 102, 0, 0.12);
+  border-color: var(--color-orange);
+  color: var(--color-orange);
 }
 
 /* ========================================
-   ステージ選択
+   スチE�Eジ選抁E
    ======================================== */
 
 .stageGrid {
@@ -508,7 +521,7 @@ svg {
 }
 
 /* ========================================
-   武器選択
+   武器選抁E
    ======================================== */
 
 .weaponSelectBtn {
@@ -548,11 +561,11 @@ svg {
 }
 
 .statCard.win {
-  border-color: rgba(16, 185, 129, 0.3);
+  border-color: rgba(118, 255, 3, 0.3);
 }
 
 .statCard.loss {
-  border-color: rgba(239, 68, 68, 0.3);
+  border-color: rgba(255, 45, 120, 0.3);
 }
 
 .statHeader {
@@ -564,15 +577,15 @@ svg {
 .statIcon {
   width: 1.5rem;
   height: 1.5rem;
-  stroke: var(--color-primary);
+  stroke: var(--color-orange);
 }
 
 .statCard.win .statIcon {
-  stroke: var(--color-success);
+  stroke: var(--color-green);
 }
 
 .statCard.loss .statIcon {
-  stroke: var(--color-error);
+  stroke: var(--color-pink);
 }
 
 .statLabel {
@@ -608,9 +621,9 @@ svg {
 }
 
 .counterBtn:hover {
-  background: var(--color-primary-light);
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+  background: rgba(255, 45, 120, 0.12);
+  border-color: var(--color-pink);
+  color: var(--color-pink);
 }
 
 .counterBtn:active {
@@ -633,7 +646,7 @@ svg {
 
 .counterInput:focus {
   border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 3px rgba(255, 45, 120, 0.15);
 }
 
 .quickCounterRow {
@@ -655,9 +668,9 @@ svg {
 }
 
 .quickCounterBtn:hover {
-  background: var(--color-primary-light);
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+  background: rgba(255, 45, 120, 0.12);
+  border-color: var(--color-pink);
+  color: var(--color-pink);
 }
 
 /* ========================================
@@ -688,7 +701,7 @@ svg {
 .mentalIcon {
   width: 1.5rem;
   height: 1.5rem;
-  stroke: var(--color-primary);
+  stroke: var(--color-cyan);
 }
 
 .mentalLabel {
@@ -716,17 +729,47 @@ svg {
 }
 
 .scaleBtn:hover {
-  background: var(--color-primary-light);
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+  background: rgba(255, 45, 120, 0.12);
+  border-color: var(--color-pink);
+  color: var(--color-pink);
   transform: translateY(-2px);
 }
 
 .scaleBtn.active {
-  background: var(--gradient-primary);
-  border-color: var(--color-primary);
+  background: var(--color-pink);
+  border-color: var(--color-pink);
   color: white;
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-glow);
+}
+
+.scaleBtn:nth-child(1).active {
+  background: var(--color-green);
+  border-color: var(--color-green);
+  box-shadow: var(--shadow-glow-green);
+}
+
+.scaleBtn:nth-child(2).active {
+  background: var(--color-cyan);
+  border-color: var(--color-cyan);
+  box-shadow: 0 0 20px rgba(0, 206, 209, 0.4);
+}
+
+.scaleBtn:nth-child(3).active {
+  background: var(--color-orange);
+  border-color: var(--color-orange);
+  box-shadow: var(--shadow-glow-orange);
+}
+
+.scaleBtn:nth-child(4).active {
+  background: var(--color-pink);
+  border-color: var(--color-pink);
+  box-shadow: var(--shadow-glow);
+}
+
+.scaleBtn:nth-child(5).active {
+  background: var(--color-purple);
+  border-color: var(--color-purple);
+  box-shadow: var(--shadow-glow-purple);
 }
 
 .scaleHint {
@@ -737,8 +780,95 @@ svg {
   padding: 0 var(--space-xs);
 }
 
+.numberInputGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-lg);
+}
+
+.numberInputGrid.single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.numberInputCard {
+  background: var(--gradient-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.numberInputRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.numberInputLabel {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.numberInputValue {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-orange);
+}
+
+.numberInput {
+  height: 3rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-elevated);
+  color: var(--color-text-primary);
+  font-size: 1.125rem;
+  font-weight: 700;
+  padding: 0 var(--space-md);
+  outline: none;
+  transition: all var(--transition-normal);
+}
+
+.numberInput:focus {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px rgba(255, 45, 120, 0.15);
+}
+
+.xpRange {
+  width: 100%;
+  accent-color: var(--color-primary);
+}
+
+.xpQuickRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-sm);
+}
+
+.xpQuickBtn {
+  height: 2rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.xpQuickBtn:hover {
+  border-color: var(--color-orange);
+  color: var(--color-orange);
+  background: rgba(255, 102, 0, 0.12);
+}
+
 /* ========================================
-   メモ入力
+   メモ入劁E
    ======================================== */
 
 .memoInput {
@@ -762,7 +892,7 @@ svg {
 
 .memoInput:focus {
   border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 3px rgba(255, 45, 120, 0.15);
 }
 
 /* ========================================
@@ -812,7 +942,7 @@ svg {
 }
 
 /* ========================================
-   メッセージボックス
+   メチE��ージボックス
    ======================================== */
 
 .messageBox {
@@ -957,13 +1087,13 @@ svg {
 }
 
 .categoryTab:hover {
-  color: var(--color-primary);
-  background: var(--color-primary-light);
+  color: var(--color-pink);
+  background: rgba(255, 45, 120, 0.12);
 }
 
 .categoryTab.active {
   color: white;
-  background: var(--gradient-primary);
+  background: linear-gradient(135deg, #FF2D78 0%, #7B26FF 100%);
   border-bottom-color: transparent;
   border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
@@ -997,16 +1127,16 @@ svg {
 }
 
 .pickerItem:hover {
-  background: var(--color-primary-light);
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+  background: rgba(123, 38, 255, 0.15);
+  border-color: var(--color-purple);
+  color: var(--color-purple);
 }
 
 .pickerItem.active {
-  background: var(--gradient-primary);
-  border-color: var(--color-primary);
+  background: linear-gradient(135deg, #7B26FF 0%, #FF2D78 100%);
+  border-color: var(--color-purple);
   color: white;
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-glow-purple);
 }
 
 .checkIcon {
@@ -1064,17 +1194,17 @@ svg {
 
 .predictionNote {
   padding: var(--space-md);
-  background: var(--color-primary-light);
-  border: 1px solid var(--color-primary);
+  background: rgba(123, 38, 255, 0.12);
+  border: 1px solid var(--color-purple);
   border-radius: var(--radius-md);
-  color: var(--color-primary);
+  color: var(--color-purple);
   font-size: 0.875rem;
   font-weight: 600;
   text-align: center;
 }
 
 /* ==========================================
-   AI分析演出のスタイル
+   AI刁E��演�Eのスタイル
    ========================================== */
 
 .analysisSection {
@@ -1087,20 +1217,21 @@ svg {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
+  background: linear-gradient(135deg, #1a1a2e 0%, #2d2b55 100%);
   animation: fadeIn 0.5s ease-out;
   padding: 2rem;
 }
 
 .analysisContainer {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: linear-gradient(135deg, #2d2b55 0%, #3b3870 100%);
   border-radius: 20px;
   padding: 3rem 2rem;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 45, 120, 0.1);
   max-width: 800px;
   width: 100%;
+  border: 1px solid rgba(255, 45, 120, 0.2);
 }
 
 .scannerEffect {
@@ -1111,10 +1242,11 @@ svg {
   height: 4px;
   background: linear-gradient(90deg,
       transparent 0%,
-      #00ff88 50%,
+      #FF2D78 30%,
+      #76FF03 70%,
       transparent 100%);
   animation: scanner 2s ease-in-out infinite;
-  box-shadow: 0 0 20px #00ff88;
+  box-shadow: 0 0 20px #FF2D78;
 }
 
 @keyframes scanner {
@@ -1167,21 +1299,21 @@ svg {
 .analysisPhase.active {
   opacity: 1;
   transform: translateX(0);
-  background: rgba(0, 255, 136, 0.1);
-  border-color: #00ff88;
-  box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+  background: rgba(255, 45, 120, 0.1);
+  border-color: #FF2D78;
+  box-shadow: 0 0 20px rgba(255, 45, 120, 0.2);
 }
 
 .phaseIcon {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #00ff88 0%, #00d4aa 100%);
+  background: linear-gradient(135deg, #FF2D78 0%, #FF6600 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+  box-shadow: 0 4px 15px rgba(255, 45, 120, 0.3);
 }
 
 .analysisPhase.active .phaseIcon {
@@ -1191,7 +1323,7 @@ svg {
 .phaseIcon svg {
   width: 28px;
   height: 28px;
-  stroke: #1a1a2e;
+  stroke: #fff;
   stroke-width: 2.5;
 }
 
@@ -1200,12 +1332,12 @@ svg {
   0%,
   100% {
     transform: scale(1);
-    box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+    box-shadow: 0 4px 15px rgba(255, 45, 120, 0.3);
   }
 
   50% {
     transform: scale(1.1);
-    box-shadow: 0 4px 25px rgba(0, 255, 136, 0.6);
+    box-shadow: 0 4px 25px rgba(255, 45, 120, 0.6);
   }
 }
 
@@ -1237,11 +1369,11 @@ svg {
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(90deg, #00ff88 0%, #00d4aa 50%, #00ff88 100%);
+  background: linear-gradient(90deg, #7B26FF 0%, #FF2D78 33%, #FF6600 66%, #76FF03 100%);
   background-size: 200% 100%;
   border-radius: 10px;
   animation: progressFill 1.5s ease-in-out forwards, shimmer 1.5s linear infinite;
-  box-shadow: 0 0 10px #00ff88;
+  box-shadow: 0 0 10px #FF2D78;
 }
 
 @keyframes progressFill {
@@ -1278,12 +1410,22 @@ svg {
 .matrixColumn {
   position: absolute;
   top: -100%;
-  font-family: 'Courier New', monospace;
+  font-family: 'Nunito', 'Courier New', monospace;
   font-size: 0.8rem;
-  color: #00ff88;
+  color: #FF2D78;
   white-space: nowrap;
   animation: matrixFall 3s linear infinite;
-  text-shadow: 0 0 5px #00ff88;
+  text-shadow: 0 0 5px #FF2D78;
+}
+
+.matrixColumn:nth-child(even) {
+  color: #76FF03;
+  text-shadow: 0 0 5px #76FF03;
+}
+
+.matrixColumn:nth-child(3n+1) {
+  color: #7B26FF;
+  text-shadow: 0 0 5px #7B26FF;
 }
 
 .matrixColumn:nth-child(odd) {
@@ -1346,19 +1488,19 @@ svg {
   gap: 0.8rem;
   padding: 1rem 2rem;
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #fff;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #FF2D78 0%, #FF6600 100%);
   border: none;
-  border-radius: 12px;
+  border-radius: 16px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 15px rgba(255, 45, 120, 0.4);
 }
 
 .resetPredictionBtn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+  box-shadow: 0 6px 20px rgba(255, 45, 120, 0.6);
 }
 
 .resetPredictionBtn:active {
@@ -1385,8 +1527,8 @@ svg {
 
 .predictionValue {
   font-size: 4.5rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #00ff88 0%, #00d4aa 50%, #0099ff 100%);
+  font-weight: 900;
+  background: linear-gradient(135deg, #FF2D78 0%, #FF6600 33%, #76FF03 66%, #00CED1 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -1420,15 +1562,30 @@ svg {
 
 .sparkle {
   position: absolute;
-  width: 8px;
-  height: 8px;
-  background: #00ff88;
+  width: 10px;
+  height: 10px;
+  background: #FF2D78;
   border-radius: 50%;
   top: 50%;
   left: 50%;
   animation: sparkleAnimation 2s ease-in-out infinite;
   animation-delay: var(--delay);
-  box-shadow: 0 0 10px #00ff88;
+  box-shadow: 0 0 12px #FF2D78;
+}
+
+.sparkle:nth-child(even) {
+  background: #76FF03;
+  box-shadow: 0 0 12px #76FF03;
+}
+
+.sparkle:nth-child(3n) {
+  background: #FF6600;
+  box-shadow: 0 0 12px #FF6600;
+}
+
+.sparkle:nth-child(4n+1) {
+  background: #7B26FF;
+  box-shadow: 0 0 12px #7B26FF;
 }
 
 @keyframes sparkleAnimation {
@@ -1485,28 +1642,28 @@ svg {
 
 .statBarFill {
   height: 100%;
-  background: linear-gradient(90deg, #00ff88 0%, #00d4aa 100%);
+  background: linear-gradient(90deg, #76FF03 0%, #00CED1 100%);
   border-radius: 10px;
   transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+  box-shadow: 0 0 10px rgba(118, 255, 3, 0.5);
 }
 
 .statBar.danger .statBarFill {
-  background: linear-gradient(90deg, #ff4757 0%, #ff6b81 100%);
-  box-shadow: 0 0 10px rgba(255, 71, 87, 0.5);
+  background: linear-gradient(90deg, #FF2D78 0%, #FF6600 100%);
+  box-shadow: 0 0 10px rgba(255, 45, 120, 0.5);
 }
 
 .predStatValue {
   font-size: 1.8rem;
   font-weight: 700;
-  color: #00ff88;
+  color: #76FF03;
   margin: 0.3rem 0;
-  text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+  text-shadow: 0 0 10px rgba(118, 255, 3, 0.3);
 }
 
 .predStatValue.negative {
-  color: #ff4757;
-  text-shadow: 0 0 10px rgba(255, 71, 87, 0.3);
+  color: #FF2D78;
+  text-shadow: 0 0 10px rgba(255, 45, 120, 0.3);
 }
 
 .predictionNote {
@@ -1521,7 +1678,7 @@ svg {
 }
 
 /* ========================================
-   履歴テーブル
+   履歴チE�Eブル
    ======================================== */
 
 .filterSection {
@@ -1551,7 +1708,7 @@ svg {
 .filterTitle svg {
   width: 1.25rem;
   height: 1.25rem;
-  stroke: var(--color-primary);
+  stroke: var(--color-orange);
 }
 
 .filterResetBtn {
@@ -1615,7 +1772,7 @@ svg {
 .filterSelect:focus,
 .filterInput:focus {
   border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 3px rgba(255, 45, 120, 0.15);
 }
 
 .historyTableWrapper {
@@ -1655,7 +1812,7 @@ svg {
 }
 
 .historyTable th.sortable:hover {
-  color: var(--color-primary);
+  color: var(--color-pink);
 }
 
 .sortIcon {
@@ -1670,7 +1827,7 @@ svg {
 
 .sortIcon.active {
   opacity: 1;
-  stroke: var(--color-primary);
+  stroke: var(--color-pink);
 }
 
 .historyTable tbody tr {
@@ -1696,7 +1853,7 @@ svg {
 
 .historyWeapon {
   font-weight: 600;
-  color: var(--color-primary);
+  color: var(--color-cyan);
 }
 
 .historyStage {
@@ -1757,9 +1914,9 @@ svg {
 }
 
 .loadMoreBtn:hover {
-  background: var(--color-primary-light);
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+  background: rgba(255, 45, 120, 0.12);
+  border-color: var(--color-pink);
+  color: var(--color-pink);
 }
 
 .emptyState {
@@ -1789,13 +1946,13 @@ svg {
 }
 
 /* ========================================
-   レスポンシブ対応
+   レスポンシブ対忁E
    ======================================== */
 
 @media (max-width: 768px) {
   .navigation {
     gap: var(--space-xs);
-    padding: var(--space-sm);
+    padding: 0 var(--space-md);
   }
 
   .navBtn {
@@ -1876,8 +2033,8 @@ svg {
 }
 
 /* ========================================
-   背景画像対応のスタイル（超コンパクト版）
-   白背景を極限まで削減し、テキスト影で可読性を確保
+   背景画像対応�Eスタイル�E�趁E��ンパクト版�E�E
+   白背景を極限まで削減し、テキスト影で可読性を確俁E
    ======================================== */
 
 /* 背景画像を持つ要素の共通スタイル */
@@ -1892,7 +2049,7 @@ svg {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* 背景画像の上にオーバーレイを追加（より薄く） */
+/* 背景画像�E上にオーバ�Eレイを追加�E�より薄く！E*/
 .pickerItem::before,
 .selectBtn::before,
 .weaponSelectBtn::before {
@@ -1902,7 +2059,7 @@ svg {
   left: 0;
   right: 0;
   bottom: 0;
-  /* オーバーレイを薄くして画像を見せる */
+  /* オーバ�Eレイを薄くして画像を見せめE*/
   background: linear-gradient(
     135deg,
     rgba(0, 0, 0, 0.25) 0%,
@@ -1913,7 +2070,7 @@ svg {
   transition: background 0.3s ease;
 }
 
-/* テキストやアイコンをオーバーレイの上に表示 */
+/* チE��ストやアイコンをオーバ�Eレイの上に表示 */
 .pickerItem > *,
 .selectBtn > *,
 .weaponSelectBtn > * {
@@ -1922,18 +2079,18 @@ svg {
 }
 
 /* ========================================
-   ピッカーアイテム専用スタイル
+   ピッカーアイチE��専用スタイル
    ======================================== */
 
 .pickerItemText {
   display: inline-block;
-  /* 白背景を削除し、テキスト影で可読性確保 */
+  /* 白背景を削除し、テキスト影で可読性確俁E*/
   background: transparent;
   padding: 4px 8px;
   border-radius: 4px;
   font-weight: 700;
   color: white;
-  /* 複数の影で可読性を確保 */
+  /* 褁E��の影で可読性を確俁E*/
   text-shadow: 
     0 2px 4px rgba(0, 0, 0, 0.9),
     0 0 12px rgba(0, 0, 0, 0.8),
@@ -1942,13 +2099,13 @@ svg {
   transition: all 0.2s ease;
 }
 
-/* ピッカーアイテムのホバー - 移動なし */
+/* ピッカーアイチE��のホバー - 移動なぁE*/
 .pickerItem:hover {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
 }
 
 .pickerItem:hover::before {
-  /* ホバー時はさらに明るく */
+  /* ホバー時�Eさらに明るぁE*/
   background: linear-gradient(
     135deg,
     rgba(0, 0, 0, 0.15) 0%,
@@ -1965,35 +2122,35 @@ svg {
   transform: scale(1.05);
 }
 
-/* アクティブ状態のピッカーアイテム */
+/* アクチE��ブ状態�EピッカーアイチE�� */
 .pickerItem.active {
   transform: none;
-  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 8px 20px rgba(123, 38, 255, 0.3);
 }
 
 .pickerItem.active::before {
   background: linear-gradient(
     135deg,
-    rgba(99, 102, 241, 0.3) 0%,
-    rgba(139, 92, 246, 0.5) 100%
+    rgba(123, 38, 255, 0.3) 0%,
+    rgba(255, 45, 120, 0.5) 100%
   );
 }
 
 .pickerItem.active .pickerItemText {
   color: #fff;
-  text-shadow: 
-    0 2px 6px rgba(99, 102, 241, 1),
-    0 0 16px rgba(99, 102, 241, 0.8),
+  text-shadow:
+    0 2px 6px rgba(123, 38, 255, 1),
+    0 0 16px rgba(255, 45, 120, 0.8),
     0 0 8px rgba(255, 255, 255, 0.6);
 }
 
 /* ========================================
-   セレクトボタン専用スタイル
+   セレクト�Eタン専用スタイル
    ======================================== */
 
 .selectBtnText {
   display: inline-block;
-  /* 白背景を削除し、テキスト影で可読性確保 */
+  /* 白背景を削除し、テキスト影で可読性確俁E*/
   background: transparent;
   padding: 3px 6px;
   border-radius: 3px;
@@ -2008,7 +2165,7 @@ svg {
   white-space: nowrap;
 }
 
-/* ホバー時 - 移動なし、影のみで強調 */
+/* ホバー晁E- 移動なし、影のみで強調 */
 .selectBtn:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
@@ -2031,7 +2188,7 @@ svg {
 }
 
 /* ========================================
-   武器セレクトボタン専用スタイル
+   武器セレクト�Eタン専用スタイル
    ======================================== */
 
 .weaponSelectBtn {
@@ -2047,14 +2204,14 @@ svg {
 }
 
 .weaponSelectBtn.selected {
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 4px 12px rgba(123, 38, 255, 0.2);
 }
 
 .weaponSelectBtn.selected::before {
   background: linear-gradient(
     135deg,
-    rgba(99, 102, 241, 0.25) 0%,
-    rgba(139, 92, 246, 0.4) 100%
+    rgba(123, 38, 255, 0.25) 0%,
+    rgba(255, 45, 120, 0.4) 100%
   );
 }
 
@@ -2123,7 +2280,7 @@ svg {
    ======================================== */
 
 .checkIcon {
-  /* 白背景を維持（チェックマークは見えにくいため） */
+  /* 白背景を維持E��チェチE��マ�Eクは見えにくいため�E�E*/
   background: rgba(255, 255, 255, 0.95);
   border-radius: 50%;
   padding: 4px;
@@ -2145,7 +2302,7 @@ svg {
 }
 
 /* ========================================
-   背景画像がない場合のフォールバック
+   背景画像がなぁE��合�Eフォールバック
    ======================================== */
 
 .pickerItem:not([style*="background-image"])::before,
@@ -2153,12 +2310,12 @@ svg {
 .weaponSelectBtn:not([style*="background-image"])::before {
   background: linear-gradient(
     135deg,
-    rgba(99, 102, 241, 0.1) 0%,
-    rgba(139, 92, 246, 0.1) 100%
+    rgba(123, 38, 255, 0.08) 0%,
+    rgba(255, 45, 120, 0.08) 100%
   );
 }
 
-/* 背景画像がない場合はテキストを通常の色に */
+/* 背景画像がなぁE��合�EチE��ストを通常の色に */
 .pickerItem:not([style*="background-image"]) .pickerItemText,
 .selectBtn:not([style*="background-image"]) .selectBtnText,
 .weaponSelectBtn:not([style*="background-image"]) .weaponName {
@@ -2191,7 +2348,7 @@ svg {
     font-size: 0.65rem;
   }
 
-  /* モバイルではホバー効果なし */
+  /* モバイルではホバー効果なぁE*/
   .pickerItem:hover,
   .selectBtn:hover,
   .weaponSelectBtn:hover {
@@ -2220,7 +2377,7 @@ svg {
   animation: imageLoad 0.3s ease-out;
 }
 
-/* 画像付き項目は hover でも背景の見え方を固定する */
+/* 画像付き頁E��は hover でも背景の見え方を固定すめE*/
 .pickerItem[style*="background-image"]:hover::before,
 .selectBtn[style*="background-image"]:hover::before {
   background: linear-gradient(
@@ -2255,17 +2412,17 @@ svg {
   background-repeat: no-repeat;
 }
 
-/* 選択済み項目は hover しても選択状態のオーバーレイを維持 */
+/* 選択済み頁E��は hover しても選択状態�Eオーバ�Eレイを維持E*/
 .weaponSelectBtn.selected[style*="background-image"]:hover::before,
 .pickerItem.active[style*="background-image"]:hover::before {
   background: linear-gradient(
     135deg,
-    rgba(99, 102, 241, 0.25) 0%,
-    rgba(139, 92, 246, 0.4) 100%
+    rgba(123, 38, 255, 0.25) 0%,
+    rgba(255, 45, 120, 0.4) 100%
   );
 }
 
-/* 選択済み画像ボタンは非hover時から背景描画を固定しておく */
+/* 選択済み画像�Eタンは非hover時から背景描画を固定しておく */
 .weaponSelectBtn.selected[style*="background-image"],
 .pickerItem.active[style*="background-image"] {
   background-size: cover;
@@ -2274,7 +2431,7 @@ svg {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* クリック時のフィードバック */
+/* クリチE��時�EフィードバチE�� */
 .pickerItem:active,
 .selectBtn:active,
 .weaponSelectBtn:active {
@@ -2361,10 +2518,11 @@ svg {
 
 .modernAuthSection {
   max-width: 600px;
-  border-color: rgba(99, 102, 241, 0.25);
+  border-color: rgba(255, 45, 120, 0.25);
   background:
-    radial-gradient(circle at top right, rgba(99, 102, 241, 0.18), transparent 40%),
-    radial-gradient(circle at bottom left, rgba(16, 185, 129, 0.1), transparent 42%),
+    radial-gradient(circle at top right, rgba(255, 45, 120, 0.15), transparent 40%),
+    radial-gradient(circle at bottom left, rgba(118, 255, 3, 0.08), transparent 42%),
+    radial-gradient(circle at top left, rgba(123, 38, 255, 0.1), transparent 45%),
     var(--color-surface);
 }
 
@@ -2388,8 +2546,8 @@ svg {
   width: calc(50% - 0.4rem);
   height: 2.6rem;
   border-radius: 0.65rem;
-  background: var(--gradient-primary);
-  box-shadow: var(--shadow-md);
+  background: linear-gradient(135deg, #FF2D78 0%, #FF6600 100%);
+  box-shadow: 0 4px 12px rgba(255, 45, 120, 0.3);
   transform: translateX(0);
   transition: transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
   z-index: 0;
@@ -2415,7 +2573,7 @@ svg {
 
 .authModeBtn:hover {
   color: var(--color-text-primary);
-  background: rgba(99, 102, 241, 0.12);
+  background: rgba(255, 45, 120, 0.12);
 }
 
 .authModeBtn.active {
@@ -2478,9 +2636,9 @@ svg {
 }
 
 .authRevealBtn:hover {
-  color: var(--color-primary);
-  border-color: var(--color-primary);
-  background: rgba(99, 102, 241, 0.12);
+  color: var(--color-pink);
+  border-color: var(--color-pink);
+  background: rgba(255, 45, 120, 0.12);
 }
 
 .authHint {
@@ -2523,4 +2681,329 @@ svg {
     width: 100%;
     justify-content: center;
   }
+}
+
+/* ========================================
+   インクエフェクト�E背景裁E��
+   ======================================== */
+
+/* 背景のインクスプラチE��裁E�� */
+.appContainer::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 120px 100px at 5% 15%, rgba(255, 45, 120, 0.05) 0%, transparent 70%),
+    radial-gradient(ellipse 80px 120px at 95% 10%, rgba(118, 255, 3, 0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 100px 80px at 90% 85%, rgba(123, 38, 255, 0.05) 0%, transparent 70%),
+    radial-gradient(ellipse 90px 110px at 10% 90%, rgba(255, 102, 0, 0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 60px 60px at 50% 5%, rgba(0, 206, 209, 0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 70px 50px at 30% 50%, rgba(255, 45, 120, 0.03) 0%, transparent 70%),
+    radial-gradient(ellipse 50px 70px at 75% 45%, rgba(118, 255, 3, 0.03) 0%, transparent 70%);
+}
+
+.appContainer::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 150px 40px at 20% 30%, rgba(123, 38, 255, 0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 40px 130px at 80% 60%, rgba(255, 45, 120, 0.03) 0%, transparent 70%),
+    radial-gradient(ellipse 110px 50px at 60% 95%, rgba(118, 255, 3, 0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 45px 100px at 40% 70%, rgba(255, 102, 0, 0.03) 0%, transparent 70%);
+}
+
+/* appContainer直下�E子要素がインク裁E��の上に来るよぁE��する */
+.appContainer > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Keep sticky header/navigation above content cards */
+.appContainer > .appHeader {
+  z-index: 100;
+}
+
+.appContainer > .navigation {
+  z-index: 150;
+  padding-top: var(--space-sm);
+  padding-bottom: var(--space-sm);
+  align-items: center;
+}
+
+/* ボタンのインクスプラチE��ュホバーエフェクチE*/
+.submitBtn {
+  position: relative;
+  overflow: hidden;
+}
+
+.submitBtn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.5s ease, height 0.5s ease;
+}
+
+.submitBtn:hover:not(:disabled)::after {
+  width: 300px;
+  height: 300px;
+}
+
+/* ナビゲーションボタンは既存スタイルのみ使用�E�E:afterなし！E*/
+
+/* セクションのインクドリチE�E風トップ�Eーダー */
+.inputSection::before,
+.predictionSection::before,
+.historySection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #7B26FF 0%, #FF2D78 33%, #FF6600 66%, #76FF03 100%);
+  opacity: 0.9;
+}
+
+/* インクドリチE�E風の波形ボ�Eダー */
+.inputSection::after,
+.predictionSection::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background:
+    radial-gradient(ellipse 12px 6px at 10% 0%, rgba(123, 38, 255, 0.4) 0%, transparent 100%),
+    radial-gradient(ellipse 8px 5px at 25% 0%, rgba(255, 45, 120, 0.3) 0%, transparent 100%),
+    radial-gradient(ellipse 10px 6px at 45% 0%, rgba(255, 102, 0, 0.3) 0%, transparent 100%),
+    radial-gradient(ellipse 14px 6px at 65% 0%, rgba(118, 255, 3, 0.3) 0%, transparent 100%),
+    radial-gradient(ellipse 9px 5px at 85% 0%, rgba(255, 45, 120, 0.3) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+/* インクスプラチE��風のアクセント（カード�E角！E*/
+.statCard::after,
+.mentalCard::after,
+.numberInputCard::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  right: -5px;
+  width: 30px;
+  height: 30px;
+  background: radial-gradient(circle, rgba(255, 45, 120, 0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.statCard.win::after {
+  background: radial-gradient(circle, rgba(118, 255, 3, 0.1) 0%, transparent 70%);
+}
+
+.statCard.loss::after {
+  background: radial-gradient(circle, rgba(255, 45, 120, 0.1) 0%, transparent 70%);
+}
+
+/* 認証画面のインク裁E�� */
+.modernAuthSection::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 80px;
+  height: 80px;
+  background: radial-gradient(circle, rgba(118, 255, 3, 0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.modernAuthSection::before {
+  content: '';
+  position: absolute;
+  bottom: -15px;
+  left: -15px;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, rgba(123, 38, 255, 0.06) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+
+/* ========================================
+   Splatoon Theme Unification (Color & FX Only)
+   ======================================== */
+
+:root {
+  --color-bg: #090f17;
+  --color-surface: #161f2a;
+  --color-surface-elevated: #1f2a37;
+  --color-border: rgba(17, 231, 255, 0.28);
+  --color-border-focus: rgba(255, 58, 180, 0.65);
+
+  --color-text-primary: #f5fbff;
+  --color-text-secondary: #c6d9ea;
+  --color-text-muted: #8ea4bb;
+
+  --color-pink: #ff3ab4;
+  --color-green: #b7ff26;
+  --color-orange: #ff8e00;
+  --color-purple: #8134ff;
+  --color-cyan: #11e7ff;
+  --color-yellow: #efff3d;
+
+  --color-primary: #ff3ab4;
+  --color-primary-hover: #ff8e00;
+  --color-primary-light: rgba(255, 58, 180, 0.16);
+
+  --color-success: #b7ff26;
+  --color-success-light: rgba(183, 255, 38, 0.14);
+  --color-error: #ff4f86;
+  --color-error-light: rgba(255, 79, 134, 0.14);
+  --color-warning: #ff8e00;
+
+  --gradient-primary: linear-gradient(125deg, #ff3ab4 0%, #ff8e00 55%, #efff3d 100%);
+  --gradient-success: linear-gradient(135deg, #b7ff26 0%, #11e7ff 100%);
+  --gradient-ink: linear-gradient(135deg, #8134ff 0%, #ff3ab4 45%, #b7ff26 100%);
+  --gradient-card: linear-gradient(135deg, rgba(129, 52, 255, 0.14) 0%, rgba(17, 231, 255, 0.12) 100%);
+
+  --shadow-glow: 0 0 22px rgba(255, 58, 180, 0.42);
+  --shadow-glow-green: 0 0 22px rgba(183, 255, 38, 0.4);
+  --shadow-glow-purple: 0 0 22px rgba(129, 52, 255, 0.44);
+  --shadow-glow-orange: 0 0 22px rgba(255, 142, 0, 0.42);
+}
+
+body {
+  background:
+    radial-gradient(circle at 12% 8%, rgba(255, 58, 180, 0.18) 0%, transparent 34%),
+    radial-gradient(circle at 86% 12%, rgba(183, 255, 38, 0.16) 0%, transparent 36%),
+    radial-gradient(circle at 80% 84%, rgba(17, 231, 255, 0.16) 0%, transparent 38%),
+    radial-gradient(circle at 18% 86%, rgba(129, 52, 255, 0.16) 0%, transparent 36%),
+    var(--color-bg);
+}
+
+.appContainer {
+  background:
+    radial-gradient(ellipse 85% 60% at 14% 10%, rgba(129, 52, 255, 0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 65% 85% at 87% 20%, rgba(255, 58, 180, 0.12) 0%, transparent 72%),
+    radial-gradient(ellipse 75% 55% at 72% 80%, rgba(183, 255, 38, 0.1) 0%, transparent 72%),
+    radial-gradient(ellipse 56% 74% at 22% 76%, rgba(255, 142, 0, 0.1) 0%, transparent 72%),
+    linear-gradient(145deg, #0a1018 0%, #111523 48%, #0f1a23 100%);
+}
+
+.appHeader,
+.navigation {
+  background: rgba(10, 16, 24, 0.88);
+  border-bottom-color: rgba(17, 231, 255, 0.26);
+}
+
+.appTitle {
+  background: linear-gradient(120deg, #efff3d 0%, #11e7ff 40%, #ff3ab4 86%);
+  text-shadow: 0 0 18px rgba(255, 58, 180, 0.28);
+}
+
+.headerBadge {
+  background: rgba(255, 58, 180, 0.18);
+  color: #ffe5f6;
+  border-color: rgba(255, 58, 180, 0.42);
+}
+
+.navBtn {
+  background: rgba(21, 30, 42, 0.86);
+  border-color: rgba(17, 231, 255, 0.28);
+  color: #d7e6f7;
+}
+
+.navBtn:hover {
+  background: rgba(28, 49, 60, 0.92);
+  border-color: rgba(183, 255, 38, 0.42);
+  color: #f5ffc7;
+  box-shadow: 0 0 14px rgba(183, 255, 38, 0.2);
+}
+
+.navBtn.active {
+  background: linear-gradient(120deg, #ff3ab4 0%, #ff8e00 62%, #efff3d 100%);
+  border-color: rgba(239, 255, 61, 0.7);
+  color: #161616;
+  box-shadow: 0 0 20px rgba(255, 58, 180, 0.34);
+}
+
+.inputSection,
+.predictionSection,
+.historySection,
+.statCard,
+.mentalCard,
+.numberInputCard,
+.historyTableWrapper,
+.historyCard,
+.adminCard {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04), 0 12px 26px rgba(0, 0, 0, 0.36);
+}
+
+.submitBtn,
+.categoryTab.active {
+  color: #171717;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.mainPrediction,
+.predStat,
+.predictionNote {
+  box-shadow: inset 0 0 0 1px rgba(17, 231, 255, 0.1);
+}
+
+.historyTable thead {
+  background: linear-gradient(90deg, rgba(129, 52, 255, 0.18) 0%, rgba(17, 231, 255, 0.1) 100%);
+}
+
+.historyTable tbody tr:hover {
+  background: linear-gradient(90deg, rgba(255, 58, 180, 0.14) 0%, rgba(255, 142, 0, 0.1) 100%);
+}
+
+.messageBox.success {
+  border-color: rgba(183, 255, 38, 0.45);
+}
+
+.messageBox.error {
+  border-color: rgba(255, 79, 134, 0.45);
+}
+
+.pickerOverlay {
+  background: rgba(4, 8, 14, 0.78);
+}
+
+.pickerItem::before,
+.selectBtn::before,
+.weaponSelectBtn::before {
+  background: linear-gradient(140deg, rgba(0, 0, 0, 0.22) 0%, rgba(0, 0, 0, 0.5) 100%);
+}
+
+.pickerItem.active::before,
+.weaponSelectBtn.selected::before {
+  background: linear-gradient(135deg, rgba(129, 52, 255, 0.28) 0%, rgba(255, 58, 180, 0.5) 100%);
+}
+
+/* Fix: keep gradient on text, not on title box */
+.appTitle {
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
