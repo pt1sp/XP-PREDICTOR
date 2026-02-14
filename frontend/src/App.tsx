@@ -1,7 +1,8 @@
-﻿import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import "./App.css";
 import {
   clearAuthToken,
+  deleteSession,
   fetchMe,
   fetchSessions,
   hasAuthToken,
@@ -71,6 +72,16 @@ export default function App() {
     void reload();
   };
 
+  const handleDeleteSession = async (sessionId: number) => {
+    try {
+      await deleteSession(sessionId);
+      await reload();
+    } catch (e) {
+      setMsg(`削除に失敗: ${String(e)}`);
+      throw e;
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -100,7 +111,7 @@ export default function App() {
       <div className="appContainer">
         <header className="appHeader">
           <div className="headerContent">
-            <h1 className="appTitle">戦績予測くん</h1>
+            <h1 className="appTitle">勝率予測くん</h1>
             <div className="headerBadge">AUTH</div>
           </div>
         </header>
@@ -120,7 +131,7 @@ export default function App() {
     <div className="appContainer">
       <header className="appHeader">
         <div className="headerContent headerUserRow">
-          <h1 className="appTitle">戦績予測くん</h1>
+          <h1 className="appTitle">勝率予測くん</h1>
           <div className="headerBadge">{user.role}</div>
           <div className="headerUserInfo">
             <span>{user.loginId}</span>
@@ -142,7 +153,9 @@ export default function App() {
 
         {currentView === "predict" && <PredictView />}
         {currentView === "record" && <RecordView onRecordSaved={handleRecordSaved} />}
-        {currentView === "history" && <HistoryView sessions={sessions} />}
+        {currentView === "history" && (
+          <HistoryView sessions={sessions} onDeleteSession={handleDeleteSession} />
+        )}
         {currentView === "admin" && isAdmin && <AdminView currentUserId={user.id} />}
       </main>
     </div>

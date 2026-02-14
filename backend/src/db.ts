@@ -112,6 +112,26 @@ function migrateLoginIdColumn() {
 
 export function initDatabase() {
   db.exec(`
+    CREATE TABLE IF NOT EXISTS "Session" (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId INTEGER,
+      playedAt TEXT NOT NULL,
+      rule TEXT NOT NULL DEFAULT '',
+      stage1 TEXT NOT NULL,
+      stage2 TEXT NOT NULL,
+      weapon TEXT NOT NULL,
+      wins INTEGER NOT NULL DEFAULT 0,
+      losses INTEGER NOT NULL DEFAULT 0,
+      fatigue INTEGER NOT NULL DEFAULT 3,
+      irritability INTEGER NOT NULL DEFAULT 3,
+      concentration INTEGER NOT NULL DEFAULT 3,
+      startXp INTEGER NOT NULL DEFAULT 0,
+      endXp INTEGER NOT NULL DEFAULT 0,
+      memo TEXT,
+      createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(userId) REFERENCES users(id) ON DELETE SET NULL
+    );
+
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       login_id TEXT NOT NULL UNIQUE,
@@ -135,5 +155,17 @@ export function initDatabase() {
 
   if (!hasColumn("Session", "userId")) {
     db.exec(`ALTER TABLE "Session" ADD COLUMN "userId" INTEGER;`);
+  }
+  if (!hasColumn("Session", "concentration")) {
+    db.exec(`ALTER TABLE "Session" ADD COLUMN "concentration" INTEGER NOT NULL DEFAULT 3;`);
+  }
+  if (!hasColumn("Session", "startXp")) {
+    db.exec(`ALTER TABLE "Session" ADD COLUMN "startXp" INTEGER NOT NULL DEFAULT 0;`);
+  }
+  if (!hasColumn("Session", "endXp")) {
+    db.exec(`ALTER TABLE "Session" ADD COLUMN "endXp" INTEGER NOT NULL DEFAULT 0;`);
+  }
+  if (!hasColumn("Session", "rule")) {
+    db.exec(`ALTER TABLE "Session" ADD COLUMN "rule" TEXT NOT NULL DEFAULT '';`);
   }
 }
