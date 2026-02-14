@@ -1,12 +1,13 @@
 ﻿import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import "dotenv/config";
 import express, { type Request, type Response } from "express";
 import cors from "cors";
 import { db, initDatabase } from "./db";
 import {
   predictNextWinRate,
-  predictWinRateByCondition,
+  predictPersonalizedByCondition,
   type PredictionCondition,
   type SessionRecord,
 } from "./predict";
@@ -69,6 +70,7 @@ type SessionRow = {
   id: number;
   userId: number | null;
   playedAt: string;
+  rule: string;
   stage1: string;
   stage2: string;
   weapon: string;
@@ -76,6 +78,9 @@ type SessionRow = {
   losses: number;
   fatigue: number;
   irritability: number;
+  concentration: number;
+  startXp: number;
+  endXp: number;
   memo: string | null;
   createdAt: string;
 };
@@ -94,6 +99,7 @@ function toSessionRecord(row: SessionRow): SessionRecord {
     id: row.id,
     userId: row.userId,
     playedAt: new Date(row.playedAt),
+    rule: row.rule,
     stage1: row.stage1,
     stage2: row.stage2,
     weapon: row.weapon,
@@ -101,6 +107,9 @@ function toSessionRecord(row: SessionRow): SessionRecord {
     losses: row.losses,
     fatigue: row.fatigue,
     irritability: row.irritability,
+    concentration: row.concentration,
+    startXp: row.startXp,
+    endXp: row.endXp,
     memo: row.memo,
     createdAt: new Date(row.createdAt),
   };
@@ -237,6 +246,12 @@ function fetchSessionsByUser(userId: number): SessionRow[] {
   return db
     .prepare(`SELECT * FROM "Session" WHERE userId = ? ORDER BY playedAt DESC`)
     .all(userId) as SessionRow[];
+}
+
+function fetchAllSessions(): SessionRow[] {
+  return db
+    .prepare(`SELECT * FROM "Session" ORDER BY playedAt ASC, id ASC`)
+    .all() as SessionRow[];
 }
 
 function ensureBuiltinAdminAccount() {
@@ -454,6 +469,52 @@ app.patch("/api/admin/users/:id/role", (req, res) => {
   res.json(toSafeUser(updated));
 });
 
+app.post("/api/admin/dev/reset-user", (req, res) => {
+  const admin = requireAdmin(req, res);
+  if (!admin) return;
+
+  try {
+    const loginId = String(req.body?.loginId ?? "").trim();
+    const password = String(req.body?.password ?? "");
+    const roleRaw = String(req.body?.role ?? "USER").toUpperCase();
+    if (!loginId || password.length < 8) {
+      return res.status(400).json({ error: "loginId and password(min 8 chars) are required" });
+    }
+    if (roleRaw !== "USER" && roleRaw !== "ADMIN") {
+      return res.status(400).json({ error: "role must be USER or ADMIN" });
+    }
+    const role = roleRaw as Role;
+
+    const existing = db
+      .prepare(`SELECT id FROM users WHERE login_id = ?`)
+      .get(loginId) as { id: number } | undefined;
+
+    if (existing) {
+      db.prepare(`DELETE FROM "Session" WHERE userId = ?`).run(existing.id);
+      db.prepare(`DELETE FROM auth_tokens WHERE user_id = ?`).run(existing.id);
+      db.prepare(`DELETE FROM users WHERE id = ?`).run(existing.id);
+    }
+
+    const passwordHash = hashPassword(password);
+    const insertColumns = ["login_id", "password_hash", "role"];
+    const insertValues: Array<string | Role> = [loginId, passwordHash, role];
+    if (hasNameColumn) {
+      insertColumns.push("name");
+      insertValues.push(loginId);
+    }
+    const placeholders = insertColumns.map(() => "?").join(", ");
+    const result = db
+      .prepare(`INSERT INTO users (${insertColumns.join(", ")}) VALUES (${placeholders})`)
+      .run(...insertValues);
+
+    const userId = Number(result.lastInsertRowid);
+    res.json({ ok: true, userId, loginId, role });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "failed to reset user" });
+  }
+});
+
 app.get("/api/admin/sessions", (req, res) => {
   const admin = requireAdmin(req, res);
   if (!admin) return;
@@ -494,6 +555,167 @@ app.get("/api/admin/sessions", (req, res) => {
   );
 });
 
+app.delete("/api/admin/sessions/:id", (req, res) => {
+  const admin = requireAdmin(req, res);
+  if (!admin) return;
+
+  const sessionId = Number(req.params.id);
+  if (!Number.isInteger(sessionId) || sessionId <= 0) {
+    return res.status(400).json({ error: "Invalid session id" });
+  }
+
+  const existing = db
+    .prepare(`SELECT id FROM "Session" WHERE id = ?`)
+    .get(sessionId) as { id: number } | undefined;
+
+  if (!existing) {
+    return res.status(404).json({ error: "Session not found" });
+  }
+
+  db.prepare(`DELETE FROM "Session" WHERE id = ?`).run(sessionId);
+  res.json({ ok: true });
+});
+
+app.get("/api/admin/evaluation/offline", (req, res) => {
+  const admin = requireAdmin(req, res);
+  if (!admin) return;
+
+  const targetUserId = parseUserIdQuery(req.query.userId);
+  if (!targetUserId) {
+    return res.status(400).json({ error: "userId is required" });
+  }
+
+  const warmupRaw = Number(req.query.warmup ?? 6);
+  const warmup = Number.isFinite(warmupRaw) ? Math.max(3, Math.min(30, Math.trunc(warmupRaw))) : 6;
+  const limitRaw = Number(req.query.limit ?? 120);
+  const limit = Number.isFinite(limitRaw) ? Math.max(20, Math.min(500, Math.trunc(limitRaw))) : 120;
+
+  const allSessions = fetchAllSessions().map(toSessionRecord);
+  const targetSessions = allSessions
+    .filter((s) => s.userId === targetUserId)
+    .sort((a, b) => a.playedAt.getTime() - b.playedAt.getTime());
+
+  if (targetSessions.length <= warmup) {
+    return res.status(400).json({
+      error: `評価対象の履歴が不足しています (required > ${warmup}, actual ${targetSessions.length})`,
+    });
+  }
+
+  const rows: Array<{
+    sessionId: number;
+    playedAt: string;
+    rule: string;
+    stage1: string;
+    stage2: string;
+    weapon: string;
+    predictedWinRate: number;
+    actualWinRate: number;
+    winRateAbsError: number;
+    winRateInterval: { low: number; high: number };
+    winRateCovered: boolean;
+    predictedXpDelta: number;
+    actualXpDelta: number;
+    xpDeltaError: number;
+    xpDeltaInterval: { low: number; high: number };
+    xpDeltaCovered: boolean;
+    recommendPlay: boolean;
+    actualRecommendSuccess: boolean;
+    advice: string;
+    note: string;
+  }> = [];
+
+  for (let i = warmup; i < targetSessions.length; i += 1) {
+    const current = targetSessions[i];
+    const train = allSessions.filter(
+      (s) =>
+        s.playedAt.getTime() < current.playedAt.getTime() ||
+        (s.playedAt.getTime() === current.playedAt.getTime() && s.id < current.id)
+    );
+    if (train.length < warmup) continue;
+
+    const condition: PredictionCondition = {
+      rule: current.rule,
+      stage1: current.stage1,
+      stage2: current.stage2,
+      weapon: current.weapon,
+      fatigue: current.fatigue,
+      irritability: current.irritability,
+      concentration: current.concentration,
+      startXp: current.startXp,
+    };
+
+    const pred = predictPersonalizedByCondition(train, condition, targetUserId);
+    const totalGames = current.wins + current.losses;
+    const actualWinRate = totalGames > 0 ? current.wins / totalGames : 0;
+    const actualXpDelta = current.endXp - current.startXp;
+    rows.push({
+      sessionId: current.id,
+      playedAt: current.playedAt.toISOString(),
+      rule: current.rule,
+      stage1: current.stage1,
+      stage2: current.stage2,
+      weapon: current.weapon,
+      predictedWinRate: pred.predictedWinRate,
+      actualWinRate,
+      winRateAbsError: Math.abs(pred.predictedWinRate - actualWinRate),
+      winRateInterval: pred.winRateInterval,
+      winRateCovered:
+        actualWinRate >= pred.winRateInterval.low && actualWinRate <= pred.winRateInterval.high,
+      predictedXpDelta: pred.predictedXpDelta,
+      actualXpDelta,
+      xpDeltaError: pred.predictedXpDelta - actualXpDelta,
+      xpDeltaInterval: pred.xpDeltaInterval,
+      xpDeltaCovered:
+        actualXpDelta >= pred.xpDeltaInterval.low && actualXpDelta <= pred.xpDeltaInterval.high,
+      recommendPlay: pred.recommendPlay,
+      actualRecommendSuccess: actualXpDelta > 0,
+      advice: pred.advice,
+      note: pred.note,
+    });
+  }
+
+  const recent = rows.slice(-limit);
+  if (recent.length === 0) {
+    return res.status(400).json({ error: "評価データを生成できませんでした" });
+  }
+
+  const maeWinRate = recent.reduce((a, r) => a + r.winRateAbsError, 0) / recent.length;
+  const rmseWinRate = Math.sqrt(
+    recent.reduce((a, r) => a + (r.predictedWinRate - r.actualWinRate) ** 2, 0) / recent.length
+  );
+  const maeXpDelta = recent.reduce((a, r) => a + Math.abs(r.xpDeltaError), 0) / recent.length;
+  const rmseXpDelta = Math.sqrt(
+    recent.reduce((a, r) => a + r.xpDeltaError ** 2, 0) / recent.length
+  );
+  const winRateCoverage =
+    recent.filter((r) => r.winRateCovered).length / Math.max(1, recent.length);
+  const xpDeltaCoverage =
+    recent.filter((r) => r.xpDeltaCovered).length / Math.max(1, recent.length);
+
+  const recommended = recent.filter((r) => r.recommendPlay);
+  const recommendationPrecision =
+    recommended.filter((r) => r.actualRecommendSuccess).length / Math.max(1, recommended.length);
+
+  res.json({
+    targetUserId,
+    warmup,
+    evaluatedCount: recent.length,
+    summary: {
+      maeWinRate,
+      rmseWinRate,
+      maeXpDelta,
+      rmseXpDelta,
+      winRateCoverage,
+      xpDeltaCoverage,
+      recommendationPrecision,
+      avgPredictedXpDelta:
+        recent.reduce((a, r) => a + r.predictedXpDelta, 0) / Math.max(1, recent.length),
+      avgActualXpDelta: recent.reduce((a, r) => a + r.actualXpDelta, 0) / Math.max(1, recent.length),
+    },
+    rows: recent,
+  });
+});
+
 app.post("/api/sessions", (req, res) => {
   const user = requireAuth(req, res);
   if (!user) return;
@@ -501,6 +723,7 @@ app.post("/api/sessions", (req, res) => {
   try {
     const {
       playedAt,
+      rule,
       stage1,
       stage2,
       weapon,
@@ -508,24 +731,28 @@ app.post("/api/sessions", (req, res) => {
       losses,
       fatigue,
       irritability,
+      concentration,
+      startXp,
+      endXp,
       memo,
     } = req.body ?? {};
 
-    if (!playedAt || !stage1 || !stage2 || !weapon) {
+    if (!playedAt || !rule || !stage1 || !stage2 || !weapon) {
       return res.status(400).json({
-        error: "playedAt, stage1, stage2, and weapon are required",
+        error: "playedAt, rule, stage1, stage2, and weapon are required",
       });
     }
 
     const result = db
       .prepare(
         `INSERT INTO "Session" (
-          "userId", "playedAt", "stage1", "stage2", "weapon", "wins", "losses", "fatigue", "irritability", "memo"
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          "userId", "playedAt", "rule", "stage1", "stage2", "weapon", "wins", "losses", "fatigue", "irritability", "concentration", "startXp", "endXp", "memo"
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
       .run(
         user.id,
         String(playedAt),
+        String(rule),
         String(stage1),
         String(stage2),
         String(weapon),
@@ -533,6 +760,9 @@ app.post("/api/sessions", (req, res) => {
         Number(losses ?? 0),
         Number(fatigue ?? 3),
         Number(irritability ?? 3),
+        Number(concentration ?? 3),
+        Number(startXp ?? 0),
+        Number(endXp ?? 0),
         memo ? String(memo) : null
       );
 
@@ -558,6 +788,31 @@ app.get("/api/sessions", (req, res) => {
   res.json(sessions);
 });
 
+app.delete("/api/sessions/:id", (req, res) => {
+  const user = requireAuth(req, res);
+  if (!user) return;
+
+  const sessionId = Number(req.params.id);
+  if (!Number.isInteger(sessionId) || sessionId <= 0) {
+    return res.status(400).json({ error: "Invalid session id" });
+  }
+
+  const existing = db
+    .prepare(`SELECT id, userId FROM "Session" WHERE id = ?`)
+    .get(sessionId) as { id: number; userId: number | null } | undefined;
+
+  if (!existing) {
+    return res.status(404).json({ error: "Session not found" });
+  }
+
+  if (existing.userId !== user.id) {
+    return res.status(403).json({ error: "You can only delete your own session" });
+  }
+
+  db.prepare(`DELETE FROM "Session" WHERE id = ?`).run(sessionId);
+  res.json({ ok: true });
+});
+
 app.get("/api/prediction", (req, res) => {
   const user = requireAuth(req, res);
   if (!user) return;
@@ -575,21 +830,28 @@ app.post("/api/prediction/next", (req, res) => {
   if (!user) return;
 
   try {
-    const { stage1, stage2, weapon, fatigue, irritability, userId } = req.body ?? {};
+    const { rule, stage1, stage2, weapon, fatigue, irritability, concentration, startXp, userId } = req.body ?? {};
 
-    if (!stage1 || !stage2 || !weapon) {
-      return res.status(400).json({ error: "stage1, stage2, and weapon are required" });
+    if (!rule || !stage1 || !stage2 || !weapon) {
+      return res.status(400).json({ error: "rule, stage1, stage2, and weapon are required" });
     }
 
     if (
       typeof fatigue !== "number" ||
       typeof irritability !== "number" ||
+      typeof concentration !== "number" ||
+      typeof startXp !== "number" ||
       fatigue < 1 ||
       fatigue > 5 ||
       irritability < 1 ||
-      irritability > 5
+      irritability > 5 ||
+      concentration < 1 ||
+      concentration > 5 ||
+      startXp < 0
     ) {
-      return res.status(400).json({ error: "fatigue and irritability must be numbers between 1 and 5" });
+      return res
+        .status(400)
+        .json({ error: "fatigue/irritability/concentration must be 1-5 and startXp must be >= 0" });
     }
 
     const requestedUserId = Number(userId);
@@ -598,17 +860,19 @@ app.post("/api/prediction/next", (req, res) => {
         ? requestedUserId
         : user.id;
 
-    const sessions = fetchSessionsByUser(targetUserId).map(toSessionRecord);
-
     const condition: PredictionCondition = {
+      rule: String(rule),
       stage1: String(stage1),
       stage2: String(stage2),
       weapon: String(weapon),
       fatigue: Number(fatigue),
       irritability: Number(irritability),
+      concentration: Number(concentration),
+      startXp: Number(startXp),
     };
 
-    const result = predictWinRateByCondition(sessions, condition);
+    const allSessions = fetchAllSessions().map(toSessionRecord);
+    const result = predictPersonalizedByCondition(allSessions, condition, targetUserId);
     res.json(result);
   } catch (err) {
     console.error(err);
@@ -616,19 +880,20 @@ app.post("/api/prediction/next", (req, res) => {
   }
 });
 
-const frontendDistPath = path.resolve(__dirname, "../../frontend/dist");
+const projectRoot = path.resolve(__dirname, "../../");
+const frontendDistPath = path.join(projectRoot, "frontend/dist");
+
 if (fs.existsSync(frontendDistPath)) {
   app.use(express.static(frontendDistPath));
-  app.get(/^\/(?!api).*/, (_req, res) => {
+  app.get(/^\/(?!api|assets\/).*/, (_req, res) => {
     res.sendFile(path.join(frontendDistPath, "index.html"));
   });
+} else {
+  console.warn(`Frontend dist not found at ${frontendDistPath}; starting API server only.`);
 }
 
-const PORT = Number(process.env.PORT ?? 4000);
+const PORT = Number(process.env.PORT ?? 10000);
 app.listen(PORT, () => {
   console.log(`Backend listening on port ${PORT}`);
 });
-
-
-
 

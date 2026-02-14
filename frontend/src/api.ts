@@ -29,6 +29,7 @@ export type AuthResponse = {
 
 export type SessionInput = {
   playedAt: string;
+  rule: Rule;
   stage1: string;
   stage2: string;
   weapon: string;
@@ -36,6 +37,9 @@ export type SessionInput = {
   losses: number;
   fatigue: number;
   irritability: number;
+  concentration: number;
+  startXp: number;
+  endXp: number;
   memo?: string;
 };
 
@@ -53,11 +57,14 @@ export type SessionWithUser = Session & {
 };
 
 export type PredictionConditionInput = {
+  rule: Rule;
   stage1: string;
   stage2: string;
   weapon: string;
   fatigue: number;
   irritability: number;
+  concentration: number;
+  startXp: number;
 };
 
 export type Prediction = {
@@ -66,8 +73,16 @@ export type Prediction = {
   weaponWinRate: number;
   stageWinRate: number;
   mentalPenalty: number;
+  predictedXpDelta: number;
+  expectedEndXp: number;
+  winRateInterval: { low: number; high: number };
+  xpDeltaInterval: { low: number; high: number };
+  recommendPlay: boolean;
+  advice: string;
   note: string;
 };
+
+export type Rule = "エリア" | "ヤグラ" | "ホコ" | "アサリ";
 
 export type AdminUser = {
   id: number;
@@ -77,6 +92,47 @@ export type AdminUser = {
   _count: {
     sessions: number;
   };
+};
+
+export type OfflineEvaluationRow = {
+  sessionId: number;
+  playedAt: string;
+  rule: Rule;
+  stage1: string;
+  stage2: string;
+  weapon: string;
+  predictedWinRate: number;
+  actualWinRate: number;
+  winRateAbsError: number;
+  winRateInterval: { low: number; high: number };
+  winRateCovered: boolean;
+  predictedXpDelta: number;
+  actualXpDelta: number;
+  xpDeltaError: number;
+  xpDeltaInterval: { low: number; high: number };
+  xpDeltaCovered: boolean;
+  recommendPlay: boolean;
+  actualRecommendSuccess: boolean;
+  advice: string;
+  note: string;
+};
+
+export type OfflineEvaluationResult = {
+  targetUserId: number;
+  warmup: number;
+  evaluatedCount: number;
+  summary: {
+    maeWinRate: number;
+    rmseWinRate: number;
+    maeXpDelta: number;
+    rmseXpDelta: number;
+    winRateCoverage: number;
+    xpDeltaCoverage: number;
+    recommendationPrecision: number;
+    avgPredictedXpDelta: number;
+    avgActualXpDelta: number;
+  };
+  rows: OfflineEvaluationRow[];
 };
 
 export function setAuthToken(token: string) {
@@ -164,6 +220,12 @@ export async function fetchSessions(userId?: number): Promise<Session[]> {
   return requestJson<Session[]>(`/api/sessions${query}`);
 }
 
+export async function deleteSession(sessionId: number): Promise<void> {
+  await requestJson<{ ok: true }>(`/api/sessions/${sessionId}`, {
+    method: "DELETE",
+  });
+}
+
 export async function fetchPrediction(userId?: number): Promise<Prediction> {
   const query = userId ? `?userId=${encodeURIComponent(userId)}` : "";
   return requestJson<Prediction>(`/api/prediction${query}`);
@@ -196,7 +258,23 @@ export async function fetchAdminSessions(userId?: number): Promise<SessionWithUs
   return requestJson<SessionWithUser[]>(`/api/admin/sessions${query}`);
 }
 
+export async function deleteAdminSession(sessionId: number): Promise<void> {
+  await requestJson<{ ok: true }>(`/api/admin/sessions/${sessionId}`, {
+    method: "DELETE",
+  });
+}
 
-
+export async function fetchOfflineEvaluation(input: {
+  userId: number;
+  warmup?: number;
+  limit?: number;
+}): Promise<OfflineEvaluationResult> {
+  const params = new URLSearchParams({
+    userId: String(input.userId),
+    warmup: String(input.warmup ?? 6),
+    limit: String(input.limit ?? 120),
+  });
+  return requestJson<OfflineEvaluationResult>(`/api/admin/evaluation/offline?${params.toString()}`);
+}
 
 
