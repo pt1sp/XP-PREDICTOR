@@ -101,9 +101,10 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
 
   const pct = (value: number) => `${Math.round(value * 1000) / 10}%`;
   const signed = (value: number) => `${value >= 0 ? "+" : ""}${Math.round(value)}`;
+  const formatDateTime = (value: string) => new Date(value).toLocaleString("ja-JP");
 
   return (
-    <div className="viewContainer">
+    <div className="viewContainer adminViewContainer">
       <section className="historySection">
         <div className="sectionHeader">
           <h2 className="sectionTitle">管理者ビュー</h2>
@@ -188,7 +189,8 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
                 <p>表示データがありません</p>
               </div>
             ) : (
-              <div className="historyTableWrapper">
+              <>
+              <div className="historyTableWrapper adminTableOnly">
                 <table className="historyTable">
                   <thead>
                     <tr>
@@ -203,7 +205,7 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
                   <tbody>
                     {sessions.map((s) => (
                       <tr key={s.id}>
-                        <td>{new Date(s.playedAt).toLocaleString("ja-JP")}</td>
+                        <td>{formatDateTime(s.playedAt)}</td>
                         <td>{s.user?.loginId ?? "-"}</td>
                         <td>{s.weapon}</td>
                         <td className="historyWins">{s.wins}</td>
@@ -223,6 +225,32 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
                   </tbody>
                 </table>
               </div>
+              <div className="adminSessionList adminMobileOnly">
+                {sessions.map((s) => (
+                  <details key={`admin-session-${s.id}`} className="historyCard">
+                    <summary className="historyCardSummary">
+                      <span className="historyDate">{formatDateTime(s.playedAt)}</span>
+                      <span className="historyWeapon">{s.weapon}</span>
+                      <span className="historyWinRate">{s.wins}W {s.losses}L</span>
+                    </summary>
+                    <div className="historyCardDetails">
+                      <div className="historyRow">
+                        <span>User</span>
+                        <strong>{s.user?.loginId ?? "-"}</strong>
+                      </div>
+                      <button
+                        className="quickBtn historyDeleteBtn"
+                        type="button"
+                        disabled={deletingSessionId === s.id}
+                        onClick={() => void handleDeleteSession(s.id)}
+                      >
+                        {deletingSessionId === s.id ? "Deleting..." : "Delete"}
+                      </button>
+                    </div>
+                  </details>
+                ))}
+              </div>
+              </>
             )}
           </div>
         </div>
@@ -264,7 +292,7 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
 
           {evalResult && (
             <>
-              <div className="historyTableWrapper" style={{ marginTop: 12 }}>
+              <div className="historyTableWrapper adminTableOnly" style={{ marginTop: 12 }}>
                 <table className="historyTable">
                   <thead>
                     <tr>
@@ -292,8 +320,20 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
                   </tbody>
                 </table>
               </div>
+              <div className="adminEvalSummary adminMobileOnly" style={{ marginTop: 12 }}>
+                <div className="historyCardDetails">
+                  <div className="historyRow"><span>Evaluated</span><strong>{evalResult.evaluatedCount}</strong></div>
+                  <div className="historyRow"><span>WinRate MAE</span><strong>{pct(evalResult.summary.maeWinRate)}</strong></div>
+                  <div className="historyRow"><span>WinRate RMSE</span><strong>{pct(evalResult.summary.rmseWinRate)}</strong></div>
+                  <div className="historyRow"><span>XP MAE</span><strong>{Math.round(evalResult.summary.maeXpDelta)}</strong></div>
+                  <div className="historyRow"><span>XP RMSE</span><strong>{Math.round(evalResult.summary.rmseXpDelta)}</strong></div>
+                  <div className="historyRow"><span>WinRate CI Coverage</span><strong>{pct(evalResult.summary.winRateCoverage)}</strong></div>
+                  <div className="historyRow"><span>XP CI Coverage</span><strong>{pct(evalResult.summary.xpDeltaCoverage)}</strong></div>
+                  <div className="historyRow"><span>Recommendation Precision</span><strong>{pct(evalResult.summary.recommendationPrecision)}</strong></div>
+                </div>
+              </div>
 
-              <div className="historyTableWrapper" style={{ marginTop: 12 }}>
+              <div className="historyTableWrapper adminTableOnly" style={{ marginTop: 12 }}>
                 <table className="historyTable">
                   <thead>
                     <tr>
@@ -313,7 +353,7 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
                   <tbody>
                     {evalResult.rows.map((row) => (
                       <tr key={row.sessionId}>
-                        <td>{new Date(row.playedAt).toLocaleString("ja-JP")}</td>
+                        <td>{formatDateTime(row.playedAt)}</td>
                         <td>{row.rule}</td>
                         <td>{row.weapon}</td>
                         <td>{pct(row.predictedWinRate)}</td>
@@ -332,6 +372,28 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
                     ))}
                   </tbody>
                 </table>
+              </div>
+              <div className="adminEvalRows adminMobileOnly" style={{ marginTop: 12 }}>
+                {evalResult.rows.map((row) => (
+                  <details key={`eval-row-${row.sessionId}`} className="historyCard">
+                    <summary className="historyCardSummary">
+                      <span className="historyDate">{formatDateTime(row.playedAt)}</span>
+                      <span className="historyWeapon">{row.weapon}</span>
+                      <span className="historyWinRate">{pct(row.actualWinRate)}</span>
+                    </summary>
+                    <div className="historyCardDetails">
+                      <div className="historyRow"><span>Rule</span><strong>{row.rule}</strong></div>
+                      <div className="historyRow"><span>Pred WinRate</span><strong>{pct(row.predictedWinRate)}</strong></div>
+                      <div className="historyRow"><span>Actual WinRate</span><strong>{pct(row.actualWinRate)}</strong></div>
+                      <div className="historyRow"><span>WinRate 95%CI</span><strong>{pct(row.winRateInterval.low)} - {pct(row.winRateInterval.high)}</strong></div>
+                      <div className="historyRow"><span>Pred XP Delta</span><strong>{signed(row.predictedXpDelta)}</strong></div>
+                      <div className="historyRow"><span>Actual XP Delta</span><strong>{signed(row.actualXpDelta)}</strong></div>
+                      <div className="historyRow"><span>XP 95%CI</span><strong>{signed(row.xpDeltaInterval.low)} - {signed(row.xpDeltaInterval.high)}</strong></div>
+                      <div className="historyRow"><span>Recommendation</span><strong>{row.recommendPlay ? "Play" : "Skip"}</strong></div>
+                      <div className="historyMemoCard">{row.advice}</div>
+                    </div>
+                  </details>
+                ))}
               </div>
             </>
           )}
