@@ -891,7 +891,6 @@ if (fs.existsSync(frontendDistPath)) {
 } else {
   console.warn(`Frontend dist not found at ${frontendDistPath}; starting API server only.`);
 }
-
 const PORT = Number(process.env.PORT ?? 10000);
 app.listen(PORT, () => {
   console.log(`Backend listening on port ${PORT}`);
