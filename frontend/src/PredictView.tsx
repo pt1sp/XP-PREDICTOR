@@ -1,5 +1,4 @@
 ﻿import { useState, useMemo, useEffect, type CSSProperties } from "react";
-import { createPortal } from "react-dom";
 import { fetchPredictionByCondition } from "./api";
 import type { Prediction, PredictionConditionInput, Rule } from "./api";
 import { STAGES, WEAPON_CATEGORIES, getWeaponCategory, getStageImagePath, getWeaponImagePath } from "./Constants";
@@ -90,14 +89,6 @@ export default function PredictView() {
   const [showStats, setShowStats] = useState(false);
   const [currentStat, setCurrentStat] = useState(0);
 
-  useEffect(() => {
-    if (!pickerOpen) return;
-    document.body.classList.add("modal-open");
-    return () => {
-      document.body.classList.remove("modal-open");
-    };
-  }, [pickerOpen]);
-
   const stageCandidates = useMemo(() => {
     const q = pickerQuery.trim().toLowerCase();
     if (!q) return [...STAGES];
@@ -111,14 +102,6 @@ export default function PredictView() {
     if (!q) return list;
     return list.filter((w) => w.toLowerCase().includes(q));
   }, [weaponCat, pickerQuery]);
-  const matrixColumns = useMemo(
-    () =>
-      Array.from({ length: 20 }, (_, i) => ({
-        left: `${i * 5}%`,
-        text: Math.random().toString(36).substring(2, 15),
-      })),
-    []
-  );
 
   const clampInt = (v: number, min: number, max: number) =>
     Math.max(min, Math.min(max, Math.trunc(v)));
@@ -181,17 +164,15 @@ export default function PredictView() {
     setAnalysisPhase("analyzing");
 
     try {
-      const predictionPromise = fetchPredictionByCondition(condition);
-
-      // フェーズ1: データ分析中
+      // フェーズ1: データ分析中 (800ms)
       await new Promise(resolve => setTimeout(resolve, ANALYSIS_DELAY_MS));
       setAnalysisPhase("calculating");
 
       // フェーズ2: 計算中
       await new Promise(resolve => setTimeout(resolve, CALCULATION_DELAY_MS));
 
-      // 演出待機と並列で取得したAPI結果を反映
-      const result = await predictionPromise;
+      // 実際のAPI呼び出し
+      const result = await fetchPredictionByCondition(condition);
       setPred(result);
 
       setAnalysisPhase("complete");
@@ -482,100 +463,98 @@ export default function PredictView() {
           </form>
 
           {/* ピッカーモーダル */}
-          {pickerOpen &&
-            createPortal(
-              <div
-                className="pickerOverlay"
-                onMouseDown={(e) => {
-                  if (e.target === e.currentTarget) setPickerOpen(null);
-                }}
-              >
-                <div className="pickerModal">
-                  <div className="pickerHeader">
-                    <div>
-                      <h3 className="pickerTitle">
-                        {pickerOpen === "weapon" ? "武器を選択" : "ステージを選択"}
-                      </h3>
-                      <p className="pickerSubtitle">
-                        {pickerOpen === "weapon"
-                          ? "カテゴリーから武器を選んでください"
-                          : "プレイするステージを選択してください"}
-                      </p>
-                    </div>
-                    <button className="closeBtn" type="button" onClick={() => setPickerOpen(null)}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                      </svg>
-                      <span className="closeBtnLabel">閉じる</span>
-                    </button>
+          {pickerOpen && (
+            <div
+              className="pickerOverlay"
+              onMouseDown={(e) => {
+                if (e.target === e.currentTarget) setPickerOpen(null);
+              }}
+            >
+              <div className="pickerModal">
+                <div className="pickerHeader">
+                  <div>
+                    <h3 className="pickerTitle">
+                      {pickerOpen === "weapon" ? "武器を選択" : "ステージを選択"}
+                    </h3>
+                    <p className="pickerSubtitle">
+                      {pickerOpen === "weapon"
+                        ? "カテゴリーから武器を選んでください"
+                        : "プレイするステージを選択してください"}
+                    </p>
                   </div>
-
-                  {pickerOpen === "weapon" && (
-                    <div className="categoryTabs">
-                      {WEAPON_CATEGORIES.map((c) => (
-                        <button
-                          key={c.key}
-                          type="button"
-                          className={`categoryTab ${c.key === weaponCat ? "active" : ""}`}
-                          onClick={() => setWeaponCat(c.key)}
-                        >
-                          {c.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="pickerGrid">
-                    {(pickerOpen === "weapon" ? weaponCandidates : stageCandidates).map((name) => {
-                      const current =
-                        pickerOpen === "weapon"
-                          ? condition.weapon
-                          : pickerOpen === "stage1"
-                            ? condition.stage1
-                            : condition.stage2;
-
-                      const stageDuplicate =
-                        (pickerOpen === "stage1" && name === condition.stage2) ||
-                        (pickerOpen === "stage2" && name === condition.stage1);
-
-                      const active = name === current;
-
-                      return (
-                        <button
-                          key={name}
-                          type="button"
-                          className={`pickerItem ${active ? "active" : ""}`}
-                          disabled={stageDuplicate}
-                          style={{
-                            backgroundImage: pickerOpen === "weapon"
-                              ? `url(${getWeaponImagePath(name)})`
-                              : `url(${getStageImagePath(name)})`,
-                            opacity: stageDuplicate ? 0.45 : undefined,
-                            cursor: stageDuplicate ? "not-allowed" : undefined,
-                          }}
-                          onClick={() => {
-                            if (stageDuplicate) return;
-                            if (pickerOpen === "weapon") setConditionValue("weapon", name);
-                            if (pickerOpen === "stage1") setConditionValue("stage1", name);
-                            if (pickerOpen === "stage2") setConditionValue("stage2", name);
-                            setPickerOpen(null);
-                          }}
-                        >
-                          {active && (
-                            <svg className="checkIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                          )}
-                          <span className="pickerItemText">{name}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
+                  <button className="closeBtn" type="button" onClick={() => setPickerOpen(null)}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                    <span className="closeBtnLabel">閉じる</span>
+                  </button>
                 </div>
-              </div>,
-              document.body
-            )}
+
+                {pickerOpen === "weapon" && (
+                  <div className="categoryTabs">
+                    {WEAPON_CATEGORIES.map((c) => (
+                      <button
+                        key={c.key}
+                        type="button"
+                        className={`categoryTab ${c.key === weaponCat ? "active" : ""}`}
+                        onClick={() => setWeaponCat(c.key)}
+                      >
+                        {c.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                <div className="pickerGrid">
+                  {(pickerOpen === "weapon" ? weaponCandidates : stageCandidates).map((name) => {
+                    const current =
+                      pickerOpen === "weapon"
+                        ? condition.weapon
+                        : pickerOpen === "stage1"
+                          ? condition.stage1
+                          : condition.stage2;
+
+                    const stageDuplicate =
+                      (pickerOpen === "stage1" && name === condition.stage2) ||
+                      (pickerOpen === "stage2" && name === condition.stage1);
+
+                    const active = name === current;
+
+                    return (
+                      <button
+                        key={name}
+                        type="button"
+                        className={`pickerItem ${active ? "active" : ""}`}
+                        disabled={stageDuplicate}
+                        style={{
+                          backgroundImage: pickerOpen === "weapon"
+                            ? `url(${getWeaponImagePath(name)})`
+                            : `url(${getStageImagePath(name)})`,
+                          opacity: stageDuplicate ? 0.45 : undefined,
+                          cursor: stageDuplicate ? "not-allowed" : undefined,
+                        }}
+                        onClick={() => {
+                          if (stageDuplicate) return;
+                          if (pickerOpen === "weapon") setConditionValue("weapon", name);
+                          if (pickerOpen === "stage1") setConditionValue("stage1", name);
+                          if (pickerOpen === "stage2") setConditionValue("stage2", name);
+                          setPickerOpen(null);
+                        }}
+                      >
+                        {active && (
+                          <svg className="checkIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        )}
+                        <span className="pickerItemText">{name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
         </section>
       )}
 
@@ -631,9 +610,9 @@ export default function PredictView() {
             </div>
 
             <div className="matrixEffect">
-              {matrixColumns.map((column, i) => (
-                <div key={i} className="matrixColumn" style={{ left: column.left }}>
-                  {column.text}
+              {Array.from({ length: 20 }).map((_, i) => (
+                <div key={i} className="matrixColumn" style={{ left: `${i * 5}%` }}>
+                  {Math.random().toString(36).substring(2, 15)}
                 </div>
               ))}
             </div>
@@ -757,7 +736,3 @@ export default function PredictView() {
     </div>
   );
 }
-
-
-
-

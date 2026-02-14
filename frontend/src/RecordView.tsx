@@ -1,5 +1,4 @@
-﻿import { useState, useMemo, useEffect } from "react";
-import { createPortal } from "react-dom";
+﻿import { useState, useMemo } from "react";
 import { createSession } from "./api";
 import type { Rule, SessionInput } from "./api";
 import {
@@ -86,14 +85,6 @@ export default function RecordView({ onRecordSaved }: RecordViewProps) {
   const [weaponCat, setWeaponCat] = useState<string>(
     WEAPON_CATEGORIES[0]?.key ?? "shooter"
   );
-
-  useEffect(() => {
-    if (!pickerOpen) return;
-    document.body.classList.add("modal-open");
-    return () => {
-      document.body.classList.remove("modal-open");
-    };
-  }, [pickerOpen]);
 
   const stageCandidates = useMemo(() => {
     const q = pickerQuery.trim().toLowerCase();
@@ -199,8 +190,8 @@ export default function RecordView({ onRecordSaved }: RecordViewProps) {
   }
 
   return (
-    <div className="viewContainer recordViewContainer">
-      <section className="inputSection recordInputSection">
+    <div className="viewContainer">
+      <section className="inputSection">
         <div className="sectionHeader">
           <h2 className="sectionTitle">プレイ実績記録</h2>
           <div className="sectionSubtitle">
@@ -807,116 +798,114 @@ export default function RecordView({ onRecordSaved }: RecordViewProps) {
         </form>
 
         {/* ピッカーモーダル */}
-        {pickerOpen &&
-          createPortal(
-            <div
-              className="pickerOverlay"
-              onMouseDown={(e) => {
-                if (e.target === e.currentTarget) setPickerOpen(null);
-              }}
-            >
-              <div className="pickerModal">
-                <div className="pickerHeader">
-                  <div>
-                    <h3 className="pickerTitle">
-                      {pickerOpen === "weapon" ? "武器を選択" : "ステージを選択"}
-                    </h3>
-                    <p className="pickerSubtitle">
-                      {pickerOpen === "weapon"
-                        ? "カテゴリーから武器を選んでください"
-                        : "プレイしたステージを選択してください"}
-                    </p>
-                  </div>
-                  <button
-                    className="closeBtn"
-                    type="button"
-                    onClick={() => setPickerOpen(null)}
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <line x1="18" y1="6" x2="6" y2="18" />
-                      <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                    <span className="closeBtnLabel">閉じる</span>
-                  </button>
+        {pickerOpen && (
+          <div
+            className="pickerOverlay"
+            onMouseDown={(e) => {
+              if (e.target === e.currentTarget) setPickerOpen(null);
+            }}
+          >
+            <div className="pickerModal">
+              <div className="pickerHeader">
+                <div>
+                  <h3 className="pickerTitle">
+                    {pickerOpen === "weapon" ? "武器を選択" : "ステージを選択"}
+                  </h3>
+                  <p className="pickerSubtitle">
+                    {pickerOpen === "weapon"
+                      ? "カテゴリーから武器を選んでください"
+                      : "プレイしたステージを選択してください"}
+                  </p>
                 </div>
-
-                {pickerOpen === "weapon" && (
-                  <div className="categoryTabs">
-                    {WEAPON_CATEGORIES.map((c) => (
-                      <button
-                        key={c.key}
-                        type="button"
-                        className={`categoryTab ${c.key === weaponCat ? "active" : ""
-                          }`}
-                        onClick={() => setWeaponCat(c.key)}
-                      >
-                        {c.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                <div className="pickerGrid">
-                  {(pickerOpen === "weapon" ? weaponCandidates : stageCandidates).map(
-                    (name) => {
-                      const current =
-                        pickerOpen === "weapon"
-                          ? form.weapon
-                          : pickerOpen === "stage1"
-                            ? form.stage1
-                            : form.stage2;
-
-                      const stageDuplicate =
-                        (pickerOpen === "stage1" && name === form.stage2) ||
-                        (pickerOpen === "stage2" && name === form.stage1);
-
-                      const active = name === current;
-
-                      return (
-                        <button
-                          key={name}
-                          type="button"
-                          className={`pickerItem ${active ? "active" : ""}`}
-                          disabled={stageDuplicate}
-                          style={{
-                            backgroundImage:
-                              pickerOpen === "weapon"
-                                ? `url(${getWeaponImagePath(name)})`
-                                : `url(${getStageImagePath(name)})`,
-                            opacity: stageDuplicate ? 0.45 : undefined,
-                            cursor: stageDuplicate ? "not-allowed" : undefined,
-                          }}
-                          onClick={() => {
-                            if (stageDuplicate) return;
-                            if (pickerOpen === "weapon")
-                              updateForm("weapon", name);
-                            if (pickerOpen === "stage1")
-                              updateForm("stage1", name);
-                            if (pickerOpen === "stage2")
-                              updateForm("stage2", name);
-                            setPickerOpen(null);
-                          }}
-                        >
-                          {active && (
-                            <svg
-                              className="checkIcon"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                            >
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                          )}
-                          <span className="pickerItemText">{name}</span>
-                        </button>
-                      );
-                    }
-                  )}
-                </div>
+                <button
+                  className="closeBtn"
+                  type="button"
+                  onClick={() => setPickerOpen(null)}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                  <span className="closeBtnLabel">閉じる</span>
+                </button>
               </div>
-            </div>,
-            document.body
-          )}
+
+              {pickerOpen === "weapon" && (
+                <div className="categoryTabs">
+                  {WEAPON_CATEGORIES.map((c) => (
+                    <button
+                      key={c.key}
+                      type="button"
+                      className={`categoryTab ${c.key === weaponCat ? "active" : ""
+                        }`}
+                      onClick={() => setWeaponCat(c.key)}
+                    >
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div className="pickerGrid">
+                {(pickerOpen === "weapon" ? weaponCandidates : stageCandidates).map(
+                  (name) => {
+                    const current =
+                      pickerOpen === "weapon"
+                        ? form.weapon
+                        : pickerOpen === "stage1"
+                          ? form.stage1
+                          : form.stage2;
+
+                    const stageDuplicate =
+                      (pickerOpen === "stage1" && name === form.stage2) ||
+                      (pickerOpen === "stage2" && name === form.stage1);
+
+                    const active = name === current;
+
+                    return (
+                      <button
+                        key={name}
+                        type="button"
+                        className={`pickerItem ${active ? "active" : ""}`}
+                        disabled={stageDuplicate}
+                        style={{
+                          backgroundImage:
+                            pickerOpen === "weapon"
+                              ? `url(${getWeaponImagePath(name)})`
+                              : `url(${getStageImagePath(name)})`,
+                          opacity: stageDuplicate ? 0.45 : undefined,
+                          cursor: stageDuplicate ? "not-allowed" : undefined,
+                        }}
+                        onClick={() => {
+                          if (stageDuplicate) return;
+                          if (pickerOpen === "weapon")
+                            updateForm("weapon", name);
+                          if (pickerOpen === "stage1")
+                            updateForm("stage1", name);
+                          if (pickerOpen === "stage2")
+                            updateForm("stage2", name);
+                          setPickerOpen(null);
+                        }}
+                      >
+                        {active && (
+                          <svg
+                            className="checkIcon"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                          >
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        )}
+                        <span className="pickerItemText">{name}</span>
+                      </button>
+                    );
+                  }
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {successModalOpen && (
           <div
@@ -956,6 +945,3 @@ export default function RecordView({ onRecordSaved }: RecordViewProps) {
     </div>
   );
 }
-
-
-

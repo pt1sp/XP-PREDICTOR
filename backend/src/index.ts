@@ -244,40 +244,14 @@ function requireAdmin(req: Request, res: Response): DbUser | null {
 
 function fetchSessionsByUser(userId: number): SessionRow[] {
   return db
-    .prepare(
-      `SELECT
-        id, userId, playedAt, rule, stage1, stage2, weapon, wins, losses,
-        fatigue, irritability, concentration, startXp, endXp, memo, createdAt
-       FROM "Session"
-       WHERE userId = ?
-       ORDER BY playedAt DESC`
-    )
+    .prepare(`SELECT * FROM "Session" WHERE userId = ? ORDER BY playedAt DESC`)
     .all(userId) as SessionRow[];
 }
 
 function fetchAllSessions(): SessionRow[] {
   return db
-    .prepare(
-      `SELECT
-        id, userId, playedAt, rule, stage1, stage2, weapon, wins, losses,
-        fatigue, irritability, concentration, startXp, endXp, memo, createdAt
-       FROM "Session"
-       ORDER BY playedAt ASC, id ASC`
-    )
+    .prepare(`SELECT * FROM "Session" ORDER BY playedAt ASC, id ASC`)
     .all() as SessionRow[];
-}
-
-let cachedAllSessionRecords: SessionRecord[] | null = null;
-
-function invalidateSessionRecordCache() {
-  cachedAllSessionRecords = null;
-}
-
-function fetchAllSessionRecords(): SessionRecord[] {
-  if (cachedAllSessionRecords) return cachedAllSessionRecords;
-  const rows = fetchAllSessions();
-  cachedAllSessionRecords = rows.map(toSessionRecord);
-  return cachedAllSessionRecords;
 }
 
 function ensureBuiltinAdminAccount() {
@@ -519,7 +493,6 @@ app.post("/api/admin/dev/reset-user", (req, res) => {
       db.prepare(`DELETE FROM "Session" WHERE userId = ?`).run(existing.id);
       db.prepare(`DELETE FROM auth_tokens WHERE user_id = ?`).run(existing.id);
       db.prepare(`DELETE FROM users WHERE id = ?`).run(existing.id);
-      invalidateSessionRecordCache();
     }
 
     const passwordHash = hashPassword(password);
@@ -534,7 +507,6 @@ app.post("/api/admin/dev/reset-user", (req, res) => {
       .prepare(`INSERT INTO users (${insertColumns.join(", ")}) VALUES (${placeholders})`)
       .run(...insertValues);
 
-    invalidateSessionRecordCache();
     const userId = Number(result.lastInsertRowid);
     res.json({ ok: true, userId, loginId, role });
   } catch (err) {
@@ -601,7 +573,6 @@ app.delete("/api/admin/sessions/:id", (req, res) => {
   }
 
   db.prepare(`DELETE FROM "Session" WHERE id = ?`).run(sessionId);
-  invalidateSessionRecordCache();
   res.json({ ok: true });
 });
 
@@ -619,7 +590,7 @@ app.get("/api/admin/evaluation/offline", (req, res) => {
   const limitRaw = Number(req.query.limit ?? 120);
   const limit = Number.isFinite(limitRaw) ? Math.max(20, Math.min(500, Math.trunc(limitRaw))) : 120;
 
-  const allSessions = fetchAllSessionRecords();
+  const allSessions = fetchAllSessions().map(toSessionRecord);
   const targetSessions = allSessions
     .filter((s) => s.userId === targetUserId)
     .sort((a, b) => a.playedAt.getTime() - b.playedAt.getTime());
@@ -653,21 +624,14 @@ app.get("/api/admin/evaluation/offline", (req, res) => {
     note: string;
   }> = [];
 
-  const train: SessionRecord[] = [];
-  let seenTargetSessions = 0;
-
-  for (const current of allSessions) {
-    const isTarget = current.userId === targetUserId;
-    if (!isTarget) {
-      train.push(current);
-      continue;
-    }
-
-    if (seenTargetSessions < warmup || train.length < warmup) {
-      seenTargetSessions += 1;
-      train.push(current);
-      continue;
-    }
+  for (let i = warmup; i < targetSessions.length; i += 1) {
+    const current = targetSessions[i];
+    const train = allSessions.filter(
+      (s) =>
+        s.playedAt.getTime() < current.playedAt.getTime() ||
+        (s.playedAt.getTime() === current.playedAt.getTime() && s.id < current.id)
+    );
+    if (train.length < warmup) continue;
 
     const condition: PredictionCondition = {
       rule: current.rule,
@@ -708,9 +672,6 @@ app.get("/api/admin/evaluation/offline", (req, res) => {
       advice: pred.advice,
       note: pred.note,
     });
-
-    seenTargetSessions += 1;
-    train.push(current);
   }
 
   const recent = rows.slice(-limit);
@@ -809,7 +770,6 @@ app.post("/api/sessions", (req, res) => {
       .prepare(`SELECT * FROM "Session" WHERE id = ?`)
       .get(Number(result.lastInsertRowid)) as SessionRow;
 
-    invalidateSessionRecordCache();
     res.json(created);
   } catch (err) {
     console.error(err);
@@ -850,7 +810,6 @@ app.delete("/api/sessions/:id", (req, res) => {
   }
 
   db.prepare(`DELETE FROM "Session" WHERE id = ?`).run(sessionId);
-  invalidateSessionRecordCache();
   res.json({ ok: true });
 });
 
@@ -912,7 +871,7 @@ app.post("/api/prediction/next", (req, res) => {
       startXp: Number(startXp),
     };
 
-    const allSessions = fetchAllSessionRecords();
+    const allSessions = fetchAllSessions().map(toSessionRecord);
     const result = predictPersonalizedByCondition(allSessions, condition, targetUserId);
     res.json(result);
   } catch (err) {
@@ -925,15 +884,7 @@ const projectRoot = path.resolve(__dirname, "../../");
 const frontendDistPath = path.join(projectRoot, "frontend/dist");
 
 if (fs.existsSync(frontendDistPath)) {
-  app.use(
-    express.static(frontendDistPath, {
-      setHeaders: (res, filePath) => {
-        if (/\.(js|css|png|jpg|jpeg|gif|webp|avif|svg)$/i.test(filePath)) {
-          res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
-        }
-      },
-    })
-  );
+  app.use(express.static(frontendDistPath));
   app.get(/^\/(?!api|assets\/).*/, (_req, res) => {
     res.sendFile(path.join(frontendDistPath, "index.html"));
   });
