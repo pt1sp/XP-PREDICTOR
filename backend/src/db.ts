@@ -168,4 +168,14 @@ export function initDatabase() {
   if (!hasColumn("Session", "rule")) {
     db.exec(`ALTER TABLE "Session" ADD COLUMN "rule" TEXT NOT NULL DEFAULT '';`);
   }
+
+  if (!hasIndex("Session_userId_playedAt_idx")) {
+    db.exec(`CREATE INDEX "Session_userId_playedAt_idx" ON "Session"("userId", "playedAt" DESC);`);
+  }
+  if (!hasIndex("Session_playedAt_id_idx")) {
+    db.exec(`CREATE INDEX "Session_playedAt_id_idx" ON "Session"("playedAt" ASC, "id" ASC);`);
+  }
+  if (!hasIndex("auth_tokens_expires_at_idx")) {
+    db.exec(`CREATE INDEX "auth_tokens_expires_at_idx" ON auth_tokens(expires_at);`);
+  }
 }

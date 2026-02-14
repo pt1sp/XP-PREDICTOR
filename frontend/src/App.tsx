@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useState } from "react";
 import "./App.css";
 import {
   clearAuthToken,
@@ -11,12 +11,13 @@ import {
   type Session,
 } from "./api";
 import Navigation from "./Navigation";
-import PredictView from "./PredictView";
-import RecordView from "./RecordView";
-import HistoryView from "./HistoryView";
 import AuthView from "./AuthView";
-import AdminView from "./AdminView";
 import type { ViewType } from "./types";
+
+const PredictView = lazy(() => import("./PredictView"));
+const RecordView = lazy(() => import("./RecordView"));
+const HistoryView = lazy(() => import("./HistoryView"));
+const AdminView = lazy(() => import("./AdminView"));
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewType>("predict");
@@ -150,13 +151,14 @@ export default function App() {
 
       <main className="mainContent">
         {msg && <div className="messageBox error">{msg}</div>}
-
-        {currentView === "predict" && <PredictView />}
-        {currentView === "record" && <RecordView onRecordSaved={handleRecordSaved} />}
-        {currentView === "history" && (
-          <HistoryView sessions={sessions} onDeleteSession={handleDeleteSession} />
-        )}
-        {currentView === "admin" && isAdmin && <AdminView currentUserId={user.id} />}
+        <Suspense fallback={<div className="emptyState"><p>読み込み中...</p></div>}>
+          {currentView === "predict" && <PredictView />}
+          {currentView === "record" && <RecordView onRecordSaved={handleRecordSaved} />}
+          {currentView === "history" && (
+            <HistoryView sessions={sessions} onDeleteSession={handleDeleteSession} />
+          )}
+          {currentView === "admin" && isAdmin && <AdminView currentUserId={user.id} />}
+        </Suspense>
       </main>
     </div>
   );

@@ -169,8 +169,16 @@ export default function HistoryView({ sessions, onDeleteSession }: HistoryViewPr
     }
   };
 
+  const formatPlayedAt = (playedAt: string) =>
+    new Date(playedAt).toLocaleString("ja-JP", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
   return (
-    <div className="viewContainer">
+    <div className="viewContainer historyViewContainer">
       <section className="historySection">
         <div className="sectionHeader">
           <h2 className="sectionTitle">プレイ履歴</h2>
@@ -353,14 +361,7 @@ export default function HistoryView({ sessions, onDeleteSession }: HistoryViewPr
 
                         return (
                           <tr key={s.id}>
-                            <td className="historyDate">
-                              {new Date(s.playedAt).toLocaleString("ja-JP", {
-                                month: "short",
-                                day: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </td>
+                            <td className="historyDate">{formatPlayedAt(s.playedAt)}</td>
                             <td className="historyWeapon">{s.weapon}</td>
                             <td className="historyMental">{s.rule}</td>
                             <td className="historyStage">{s.stage1}</td>
@@ -374,7 +375,7 @@ export default function HistoryView({ sessions, onDeleteSession }: HistoryViewPr
                             <td className="historyMental">{s.startXp}</td>
                             <td className="historyMental">{s.endXp}</td>
                             <td className="historyMemo" title={s.memo || "-"}>
-                              {s.memo || "-"}
+                              <span className="historyMemoText">{s.memo || "-"}</span>
                             </td>
                             <td>
                               <button
@@ -391,6 +392,64 @@ export default function HistoryView({ sessions, onDeleteSession }: HistoryViewPr
                       })}
                     </tbody>
                   </table>
+                </div>
+
+                <div className="historyList">
+                  {displayedSessions.map((s) => {
+                    const total = s.wins + s.losses;
+                    const winRate = toWinRatePercent(s);
+                    return (
+                      <details key={`card-${s.id}`} className="historyCard">
+                        <summary className="historyCardSummary">
+                          <span className="historyDate">{formatPlayedAt(s.playedAt)}</span>
+                          <span className="historyWeapon">{s.weapon}</span>
+                          <span className="historyWinRate">
+                            {total > 0 ? `${winRate}%` : "-"}
+                          </span>
+                        </summary>
+
+                        <div className="historyCardDetails">
+                          <div className="historyRow">
+                            <span>ルール</span>
+                            <strong>{s.rule}</strong>
+                          </div>
+                          <div className="historyRow">
+                            <span>ステージ</span>
+                            <strong>
+                              {s.stage1} / {s.stage2}
+                            </strong>
+                          </div>
+                          <div className="historyRow">
+                            <span>勝敗</span>
+                            <strong>
+                              {s.wins}勝 {s.losses}敗
+                            </strong>
+                          </div>
+                          <div className="historyRow">
+                            <span>メンタル</span>
+                            <strong>
+                              疲労{s.fatigue} / イライラ{s.irritability} / 集中{s.concentration}
+                            </strong>
+                          </div>
+                          <div className="historyRow">
+                            <span>XP</span>
+                            <strong>
+                              {s.startXp} → {s.endXp}
+                            </strong>
+                          </div>
+                          <div className="historyMemoCard">{s.memo || "-"}</div>
+                          <button
+                            type="button"
+                            className="quickBtn historyDeleteBtn"
+                            disabled={deletingSessionId === s.id}
+                            onClick={() => void handleDelete(s.id)}
+                          >
+                            {deletingSessionId === s.id ? "削除中..." : "削除"}
+                          </button>
+                        </div>
+                      </details>
+                    );
+                  })}
                 </div>
 
                 {hasMore && (
