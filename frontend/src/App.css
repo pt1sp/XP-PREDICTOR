@@ -1,7 +1,9 @@
-/* ========================================
-   グローバルリセチE�� & ベ�Eス設宁E
-   ======================================== */
+﻿/*
+  NOTE: This file includes the former index.css content at the top.
+  Rationale: keep global styles in one place so load order is predictable.
+*/
 
+/* ===== Merged from index.css (was imported by main.tsx) ===== */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -9,7 +11,7 @@
 }
 
 :root {
-  /* カラーパレチE�� - スプラトゥーン風 */
+  /* 繧ｫ繝ｩ繝ｼ繝代Ξ繝・ヨ - 繧ｹ繝励Λ繝医ぇ繝ｼ繝ｳ鬚ｨ */
   --color-bg: #1a1a2e;
   --color-surface: #2d2b55;
   --color-surface-elevated: #3b3870;
@@ -20,7 +22,7 @@
   --color-text-secondary: #c4b5fd;
   --color-text-muted: #8b7ec8;
 
-  /* スプラトゥーンカラー */
+  /* 繧ｹ繝励Λ繝医ぇ繝ｼ繝ｳ繧ｫ繝ｩ繝ｼ */
   --color-pink: #FF2D78;
   --color-green: #76FF03;
   --color-orange: #FF6600;
@@ -38,13 +40,13 @@
   --color-error-light: rgba(255, 45, 120, 0.12);
   --color-warning: #FF6600;
 
-  /* グラチE�Eション */
+  /* 繧ｰ繝ｩ繝・・繧ｷ繝ｧ繝ｳ */
   --gradient-primary: linear-gradient(135deg, #FF2D78 0%, #FF6600 100%);
   --gradient-success: linear-gradient(135deg, #76FF03 0%, #00CED1 100%);
   --gradient-ink: linear-gradient(135deg, #7B26FF 0%, #FF2D78 50%, #76FF03 100%);
   --gradient-card: linear-gradient(135deg, rgba(123, 38, 255, 0.08) 0%, rgba(255, 45, 120, 0.08) 100%);
 
-  /* シャドウ */
+  /* 繧ｷ繝｣繝峨え */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.5);
@@ -54,7 +56,7 @@
   --shadow-glow-purple: 0 0 20px rgba(123, 38, 255, 0.4);
   --shadow-glow-orange: 0 0 20px rgba(255, 102, 0, 0.4);
 
-  /* スペ�Eシング */
+  /* 繧ｹ繝壹・繧ｷ繝ｳ繧ｰ */
   --space-xs: 0.25rem;
   --space-sm: 0.5rem;
   --space-md: 1rem;
@@ -63,14 +65,14 @@
   --space-2xl: 3rem;
   --history-memo-max-width: 18rem;
 
-  /* ボ�EダーラチE��ウス�E�より丸く！E*/
+  /* 繝懊・繝繝ｼ繝ｩ繝・ぅ繧ｦ繧ｹ・医ｈ繧贋ｸｸ縺擾ｼ・*/
   --radius-sm: 0.75rem;
   --radius-md: 1rem;
   --radius-lg: 1.25rem;
   --radius-xl: 2rem;
   --radius-full: 9999px;
 
-  /* トランジション */
+  /* 繝医Λ繝ｳ繧ｸ繧ｷ繝ｧ繝ｳ */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -94,8 +96,7 @@ svg {
 }
 
 /* ========================================
-   アプリケーションレイアウチE
-   ======================================== */
+   繧｢繝励Μ繧ｱ繝ｼ繧ｷ繝ｧ繝ｳ繝ｬ繧､繧｢繧ｦ繝・   ======================================== */
 
 .appContainer {
   min-height: 100vh;
@@ -132,9 +133,12 @@ svg {
   font-size: clamp(1.5rem, 4vw, 2rem);
   line-height: 1;
   font-weight: 900;
-  color: var(--color-text-primary);
-  -webkit-text-fill-color: currentColor;
+  background: linear-gradient(135deg, #7f9bff 0%, #7f6dff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   letter-spacing: 0.02em;
+  text-shadow: none;
 }
 
 .headerBadge {
@@ -150,7 +154,7 @@ svg {
 }
 
 /* ========================================
-   ナビゲーション
+   繝翫ン繧ｲ繝ｼ繧ｷ繝ｧ繝ｳ
    ======================================== */
 
 .navigation {
@@ -212,8 +216,1922 @@ svg {
 }
 
 /* ========================================
-   メインコンチE��チE
+   繝薙Η繝ｼ繧ｳ繝ｳ繝・リ
    ======================================== */
+
+.viewContainer {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mainContent {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--space-xl) var(--space-md);
+  display: grid;
+  gap: var(--space-xl);
+  width: 100%;
+}
+
+/* ========================================
+   繧ｻ繧ｯ繧ｷ繝ｧ繝ｳ蜈ｱ騾壹せ繧ｿ繧､繝ｫ
+   ======================================== */
+
+.inputSection,
+.predictionSection,
+.historySection {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-xl);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.inputSection::before,
+.predictionSection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #7B26FF 0%, #FF2D78 33%, #FF6600 66%, #76FF03 100%);
+  opacity: 0.9;
+}
+
+.sectionHeader {
+  margin-bottom: var(--space-xl);
+}
+
+.sectionTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: var(--space-xs);
+  color: var(--color-text-primary);
+}
+
+.sectionSubtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+/* ========================================
+   繝輔か繝ｼ繝繧ｹ繧ｿ繧､繝ｫ
+   ======================================== */
+
+.inputForm {
+  display: grid;
+  gap: var(--space-xl);
+}
+
+/* PC陦ｨ遉ｺ譎ゅ・2繧ｫ繝ｩ繝繝ｬ繧､繧｢繧ｦ繝・*/
+@media (min-width: 1025px) {
+  .inputForm {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* 譌･譎ょ・蜉帙・1蛻礼岼 */
+  .inputForm > .formGroup:nth-child(1) {
+    grid-column: 1;
+  }
+
+  /* 繧ｹ繝・・繧ｸ驕ｸ謚槭・2蛻礼岼 */
+  .inputForm > .formGroup:nth-child(2) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  /* 豁ｦ蝎ｨ驕ｸ謚槭・1蛻礼岼 */
+  .inputForm > .formGroup:nth-child(3) {
+    grid-column: 1;
+  }
+
+  /* 蜍晄風繧ｫ繧ｦ繝ｳ繧ｿ繝ｼ縺ｯ2蛻励↓縺ｾ縺溘′繧・*/
+  .statsColumn {
+    grid-column: 1 / -1;
+  }
+
+  /* 繝｡繝ｳ繧ｿ繝ｫ迥ｶ諷九ｂ2蛻励↓縺ｾ縺溘′繧・*/
+  .mentalColumn {
+    grid-column: 1 / -1;
+  }
+
+  /* 繝｡繝｢繧・蛻励↓縺ｾ縺溘′繧・*/
+  .inputForm > .formGroup:has(.memoInput) {
+    grid-column: 1 / -1;
+  }
+
+  /* 騾∽ｿ｡繝懊ち繝ｳ繧・蛻励↓縺ｾ縺溘′繧・*/
+  .formActions {
+    grid-column: 1 / -1;
+  }
+
+  /* 繝｡繝・そ繝ｼ繧ｸ繝懊ャ繧ｯ繧ｹ繧・蛻励↓縺ｾ縺溘′繧・*/
+  .messageBox {
+    grid-column: 1 / -1;
+  }
+}
+
+.formGroup {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.formLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.labelIcon {
+  width: 1rem;
+  height: 1rem;
+  stroke: var(--color-orange);
+}
+
+/* ========================================
+   譌･譎ょ・蜉・   ======================================== */
+
+.dateTimeGroup {
+  display: flex;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.customDateInputs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0 var(--space-md);
+  height: 3rem;
+  transition: all var(--transition-normal);
+}
+
+.customDateInputs:focus-within {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px rgba(255, 45, 120, 0.15);
+}
+
+.datePartInput {
+  background: transparent;
+  border: none;
+  color: var(--color-text-primary);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  outline: none;
+  text-align: center;
+  width: 4.5rem;
+  padding: var(--space-xs);
+}
+
+.datePartInput.short {
+  width: 3rem;
+}
+
+.datePartInput::placeholder {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+/* number縺ｮ繧ｹ繝斐リ繝ｼ繧帝撼陦ｨ遉ｺ */
+.datePartInput::-webkit-outer-spin-button,
+.datePartInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.datePartInput[type=number] {
+  -moz-appearance: textfield;
+}
+
+.dateSeparator {
+  color: var(--color-text-muted);
+  font-weight: 400;
+  user-select: none;
+}
+
+.timeInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0 var(--space-md);
+  height: 3rem;
+  transition: all var(--transition-normal);
+}
+
+.timeInputWrapper:focus-within {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px rgba(255, 45, 120, 0.15);
+}
+
+.timeInput {
+  background: transparent;
+  border: none;
+  color: var(--color-text-primary);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  width: 3.5rem;
+  text-align: center;
+  outline: none;
+  padding: var(--space-xs);
+}
+
+/* number縺ｮ繧ｹ繝斐リ繝ｼ繧帝撼陦ｨ遉ｺ */
+.timeInput::-webkit-outer-spin-button,
+.timeInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.timeInput[type=number] {
+  -moz-appearance: textfield;
+}
+
+.timeLabel {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  margin-left: var(--space-xs);
+  user-select: none;
+}
+
+.quickBtn {
+  height: 3rem;
+  padding: 0 var(--space-md);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.quickBtn svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.quickBtn:hover {
+  background: rgba(255, 102, 0, 0.12);
+  border-color: var(--color-orange);
+  color: var(--color-orange);
+  transform: translateY(-1px);
+}
+
+.quickBtn:active {
+  transform: translateY(0);
+}
+
+/* ========================================
+   繧ｹ繝・・繧ｸ驕ｸ謚・   ======================================== */
+
+.stageGrid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: var(--space-md);
+  align-items: start;
+}
+
+.stageSlot {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.slotLabel {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.selectBtn {
+  height: 3.5rem;
+  padding: 0 var(--space-lg);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  text-align: left;
+}
+
+.selectBtn:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.selectIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  opacity: 0.5;
+  transition: transform var(--transition-normal);
+}
+
+.selectBtn:hover .selectIcon {
+  opacity: 1;
+  transform: translateY(2px);
+}
+
+.swapBtn {
+  height: 3.5rem;
+  width: 3.5rem;
+  margin-top: 1.375rem;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.swapBtn svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.swapBtn:hover {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  transform: rotate(180deg);
+}
+
+/* ========================================
+   豁ｦ蝎ｨ驕ｸ謚・   ======================================== */
+
+.weaponSelectBtn {
+  height: 4rem;
+  padding: 0 var(--space-lg);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.weaponSelectBtn.selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.weaponSelectBtn:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.weaponDisplay {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  flex: 1;
+}
+
+.weaponName {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.weaponCategory {
+  font-size: 0.75rem;
+  color: var(--color-cyan);
+  background: rgba(0, 206, 209, 0.15);
+  padding: 0.125rem var(--space-sm);
+  border-radius: var(--radius-sm);
+}
+
+/* ========================================
+   蜍晄風繧ｫ繧ｦ繝ｳ繧ｿ繝ｼ
+   ======================================== */
+
+.statsColumn {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-lg);
+}
+
+.statCard {
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.statCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #76FF03, #00CED1);
+  opacity: 0.9;
+}
+
+.statCard.loss::before {
+  background: linear-gradient(90deg, #FF2D78, #FF6600);
+}
+
+.statHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.statIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  stroke: var(--color-success);
+}
+
+.statCard.loss .statIcon {
+  stroke: var(--color-error);
+}
+
+.statLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.counterControl {
+  display: grid;
+  grid-template-columns: 3rem 1fr 3rem;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.counterBtn {
+  height: 3rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.counterBtn svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.counterBtn:hover {
+  background: rgba(255, 45, 120, 0.12);
+  border-color: var(--color-pink);
+  color: var(--color-pink);
+}
+
+.counterBtn:active {
+  transform: scale(0.95);
+}
+
+.counterInput {
+  height: 3rem;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  outline: none;
+  transition: all var(--transition-normal);
+}
+
+.counterInput:focus {
+  border-color: var(--color-border-focus);
+  background: var(--color-surface);
+}
+
+.quickCounterRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.quickCounterBtn {
+  height: 2.25rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.quickCounterBtn:hover {
+  background: rgba(255, 45, 120, 0.12);
+  border-color: var(--color-pink);
+  color: var(--color-pink);
+  transform: translateY(-1px);
+}
+
+.quickCounterBtn:active {
+  transform: translateY(0);
+}
+
+/* ========================================
+   繝｡繝ｳ繧ｿ繝ｫ迥ｶ諷・   ======================================== */
+
+.mentalColumn {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-lg);
+}
+
+.mentalCard {
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+}
+
+.mentalHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.mentalIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke: var(--color-primary);
+}
+
+.mentalLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.scaleControl {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.scaleBtn {
+  aspect-ratio: 1;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  position: relative;
+}
+
+.scaleBtn::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: var(--radius-md);
+  background: var(--gradient-primary);
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+  z-index: -1;
+}
+
+.scaleBtn:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-pink);
+  color: var(--color-pink);
+}
+
+.scaleBtn.active {
+  background: var(--color-pink);
+  border-color: var(--color-pink);
+  color: white;
+  transform: scale(1.1);
+  box-shadow: var(--shadow-glow);
+}
+
+.scaleBtn:nth-child(1).active {
+  background: var(--color-green);
+  border-color: var(--color-green);
+  box-shadow: var(--shadow-glow-green);
+}
+
+.scaleBtn:nth-child(2).active {
+  background: var(--color-cyan);
+  border-color: var(--color-cyan);
+  box-shadow: 0 0 20px rgba(0, 206, 209, 0.4);
+}
+
+.scaleBtn:nth-child(3).active {
+  background: var(--color-orange);
+  border-color: var(--color-orange);
+  box-shadow: var(--shadow-glow-orange);
+}
+
+.scaleBtn:nth-child(4).active {
+  background: var(--color-pink);
+  border-color: var(--color-pink);
+  box-shadow: var(--shadow-glow);
+}
+
+.scaleBtn:nth-child(5).active {
+  background: var(--color-purple);
+  border-color: var(--color-purple);
+  box-shadow: var(--shadow-glow-purple);
+}
+
+.scaleBtn.active::before {
+  opacity: 1;
+}
+
+.scaleHint {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.numberInputGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-lg);
+}
+
+.numberInputGrid.single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.numberInputCard {
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.numberInputRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.numberInputLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.numberInputValue {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-orange);
+}
+
+.numberInput {
+  height: 3rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: 1.125rem;
+  font-weight: 700;
+  padding: 0 var(--space-md);
+  outline: none;
+  transition: all var(--transition-normal);
+}
+
+.numberInput:focus {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px rgba(255, 45, 120, 0.15);
+}
+
+.xpRange {
+  width: 100%;
+  accent-color: var(--color-primary);
+}
+
+.xpQuickRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-sm);
+}
+
+.xpQuickBtn {
+  height: 2rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.xpQuickBtn:hover {
+  border-color: var(--color-orange);
+  color: var(--color-orange);
+  background: rgba(255, 102, 0, 0.12);
+}
+
+/* ========================================
+   繝｡繝｢蜈･蜉・   ======================================== */
+
+.memoInput {
+  width: 100%;
+  padding: var(--space-md);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: 0.9375rem;
+  font-family: inherit;
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+  transition: all var(--transition-normal);
+}
+
+.memoInput::placeholder {
+  color: var(--color-text-muted);
+}
+
+.memoInput:focus {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px rgba(255, 45, 120, 0.15);
+  background: var(--color-surface);
+}
+
+/* ========================================
+   騾∽ｿ｡繝懊ち繝ｳ
+   ======================================== */
+
+.formActions {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.submitBtn {
+  padding: 0 var(--space-xl);
+  height: 3.5rem;
+  background: var(--gradient-primary);
+  border: none;
+  border-radius: var(--radius-lg);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.submitBtn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.submitBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl), var(--shadow-glow);
+}
+
+.submitBtn:hover:not(:disabled)::before {
+  opacity: 1;
+}
+
+.submitBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submitBtn svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* ========================================
+   繝｡繝・そ繝ｼ繧ｸ繝懊ャ繧ｯ繧ｹ
+   ======================================== */
+
+.messageBox {
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  animation: slideIn 0.3s ease-out;
+}
+
+.messageBox.success {
+  background: var(--color-success-light);
+  color: var(--color-success);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.messageBox.error {
+  background: var(--color-error-light);
+  color: var(--color-error);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
+   繝斐ャ繧ｫ繝ｼ繝｢繝ｼ繝繝ｫ
+   ======================================== */
+
+.pickerOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.pickerModal {
+  width: min(900px, 100%);
+  max-height: min(700px, 90vh);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  overflow: hidden;
+  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.pickerHeader {
+  padding: var(--space-xl);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-lg);
+}
+
+.pickerTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.pickerSubtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.closeBtn {
+  height: 2.5rem;
+  padding: 0 var(--space-md);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+}
+
+.closeBtn svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.closeBtnLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.closeBtn:hover {
+  background: var(--color-error-light);
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.closeBtn:hover svg {
+  transform: rotate(90deg);
+}
+
+/* ========================================
+   繧ｫ繝・ざ繝ｪ繝ｼ繧ｿ繝・   ======================================== */
+
+.categoryTabs {
+  padding: var(--space-md) var(--space-xl) 0;
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  overflow-x: auto;
+}
+
+.categoryTab {
+  height: 2.5rem;
+  padding: 0 var(--space-lg);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  white-space: nowrap;
+}
+
+.categoryTab:hover {
+  background: rgba(255, 45, 120, 0.12);
+  border-color: var(--color-pink);
+  color: var(--color-pink);
+}
+
+.categoryTab.active {
+  background: var(--gradient-primary);
+  border-color: var(--color-pink);
+  color: white;
+  box-shadow: 0 0 20px rgba(89, 120, 255, 0.45);
+}
+
+/* ========================================
+   繝斐ャ繧ｫ繝ｼ繧ｰ繝ｪ繝・ラ
+   ======================================== */
+
+.pickerGrid {
+  padding: var(--space-xl);
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-md);
+  align-content: start;
+}
+
+.pickerItem {
+  padding: var(--space-lg);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: 0.9375rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.pickerItem:hover {
+  background: rgba(123, 38, 255, 0.15);
+  border-color: var(--color-purple);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.pickerItem.active {
+  background: linear-gradient(135deg, #7B26FF 0%, #FF2D78 100%);
+  border-color: var(--color-purple);
+  color: white;
+  box-shadow: var(--shadow-glow-purple);
+}
+
+/* 逕ｻ蜒丈ｻ倥″縺ｮ驕ｸ謚樊ｸ医∩隕∫ｴ縺ｯ閭梧勹繧ｵ繧､繧ｺ繧貞崋螳壹＠縲”over縺ｧ縺ｮ繧ｺ繝ｼ繝隕九∴繧帝亟縺・*/
+.weaponSelectBtn.selected[style*="background-image"],
+.pickerItem.active[style*="background-image"] {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.checkIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  stroke: white;
+}
+
+/* ========================================
+   莠域ｸｬ繧ｻ繧ｯ繧ｷ繝ｧ繝ｳ
+   ======================================== */
+
+.predictionContent {
+  display: grid;
+  gap: var(--space-xl);
+}
+
+/* PC陦ｨ遉ｺ譎ゅ・莠域ｸｬ蛟､繧貞ｷｦ縲∬ｩｳ邏ｰ繧貞承縺ｫ驟咲ｽｮ */
+@media (min-width: 1025px) {
+  .predictionContent {
+    grid-template-columns: 400px 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .mainPrediction {
+    grid-column: 1;
+    grid-row: 1 / 3;
+  }
+
+  .predictionStats {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .predictionNote {
+    grid-column: 2;
+    grid-row: 2;
+  }
+}
+
+.mainPrediction {
+  text-align: center;
+  padding: var(--space-2xl);
+  background: var(--gradient-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
+.predictionValue {
+  font-size: clamp(3rem, 8vw, 5rem);
+  font-weight: 900;
+  background: linear-gradient(135deg, #FF2D78 0%, #FF6600 40%, #76FF03 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  margin-bottom: var(--space-sm);
+}
+
+.predictionLabel {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+}
+
+.predictionStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-md);
+}
+
+.predStat {
+  padding: var(--space-lg);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.predStatLabel {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-sm);
+}
+
+.predStatValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.predStatValue.negative {
+  color: var(--color-error);
+}
+
+.predictionNote {
+  padding: var(--space-lg);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-purple);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.predictionError {
+  padding: var(--space-2xl);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.predictionError svg {
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: var(--space-md);
+  stroke: var(--color-text-muted);
+}
+
+.predictionError p {
+  font-size: 1.125rem;
+  margin-bottom: var(--space-sm);
+}
+
+.predictionError small {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+/* ========================================
+   螻･豁ｴ繧ｻ繧ｯ繧ｷ繝ｧ繝ｳ
+   ======================================== */
+
+/* 繝・・繝悶Ν繝ｩ繝・ヱ繝ｼ - PC逕ｨ・医ョ繝輔か繝ｫ繝郁｡ｨ遉ｺ・・*/
+.historyTableWrapper {
+  width: 100%;
+  overflow-x: auto;
+  background: var(--color-surface-elevated);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.historyTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.historyTable thead {
+  background: var(--color-surface);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.historyTable th {
+  padding: var(--space-lg) var(--space-md);
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.historyTable tbody tr {
+  border-bottom: 1px solid var(--color-border);
+  transition: all var(--transition-normal);
+}
+
+.historyTable tbody tr:hover {
+  background: var(--color-primary-light);
+}
+
+.historyTable tbody tr:last-child {
+  border-bottom: none;
+}
+
+.historyTable td {
+  padding: var(--space-lg) var(--space-md);
+  color: var(--color-text-primary);
+}
+
+.historyTable .historyDate {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.historyTable .historyWeapon {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.historyTable .historyStage {
+  color: var(--color-text-secondary);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.historyTable .historyWins {
+  color: var(--color-success);
+  font-weight: 700;
+  text-align: center;
+}
+
+.historyTable .historyLosses {
+  color: var(--color-error);
+  font-weight: 700;
+  text-align: center;
+}
+
+.historyTable .historyWinRate {
+  font-weight: 700;
+  color: var(--color-primary);
+  text-align: center;
+  font-size: 1.125rem;
+}
+
+.historyTable .historyMental {
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+.historyTable .historyMemo {
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+/* 繧ｫ繝ｼ繝峨Μ繧ｹ繝・- 繧ｹ繝槭・逕ｨ・医ョ繝輔か繝ｫ繝磯撼陦ｨ遉ｺ・・*/
+.historyList {
+  display: none;
+  grid-template-columns: 1fr;
+  gap: var(--space-md);
+}
+
+.historyCard {
+  padding: var(--space-lg);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-normal);
+}
+
+.historyCard:hover {
+  border-color: var(--color-primary);
+  transform: translateX(4px);
+  box-shadow: var(--shadow-md);
+}
+
+.historyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.historyCard .historyDate {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.historyCard .historyWinRate {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.historyBody {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.historyRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  font-size: 0.9375rem;
+  color: var(--color-text-secondary);
+}
+
+.historyIcon {
+  width: 1.5rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.historyScore {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-weight: 600;
+}
+
+.scoreWin {
+  color: var(--color-success);
+}
+
+.scoreLoss {
+  color: var(--color-error);
+}
+
+.scoreSep {
+  color: var(--color-text-muted);
+}
+
+.historyMemoCard {
+  margin-top: var(--space-sm);
+  padding: var(--space-md);
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  display: flex;
+  align-items: start;
+  gap: var(--space-md);
+}
+
+.emptyState {
+  padding: var(--space-2xl);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.emptyState svg {
+  width: 4rem;
+  height: 4rem;
+  margin-bottom: var(--space-lg);
+  stroke: var(--color-text-muted);
+  opacity: 0.3;
+}
+
+.emptyState p {
+  font-size: 1.125rem;
+  margin-bottom: var(--space-sm);
+}
+
+.emptyState small {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+/* ========================================
+   繝ｬ繧ｹ繝昴Φ繧ｷ繝冶ｪｿ謨ｴ
+   ======================================== */
+
+/* 繧ｿ繝悶Ξ繝・ヨ莉･荳・- 繧ｫ繝ｼ繝芽｡ｨ遉ｺ縺ｫ蛻・ｊ譖ｿ縺・*/
+@media (max-width: 1024px) {
+  .historyTableWrapper {
+    display: none;
+  }
+
+  .historyList {
+    display: grid;
+  }
+}
+
+@media (max-width: 768px) {
+  .appHeader {
+    padding: var(--space-md);
+  }
+
+  .navigation {
+    padding: 0 var(--space-md);
+  }
+
+  .navBtn {
+    height: 2.5rem;
+    padding: 0 var(--space-md);
+    font-size: 0.8125rem;
+  }
+
+  .navBtn svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .mainContent {
+    padding: var(--space-lg) var(--space-md);
+  }
+
+  .inputSection,
+  .predictionSection,
+  .historySection {
+    padding: var(--space-lg);
+  }
+
+  .stageGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .swapBtn {
+    margin-top: 0;
+    width: 100%;
+    height: 3rem;
+  }
+
+  .swapBtn:hover {
+    transform: none;
+  }
+
+  .dateTimeGroup {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-sm);
+  }
+
+  .customDateInputs {
+    grid-column: 1 / -1;
+  }
+
+  .timeInputWrapper {
+    grid-column: 1 / -1;
+  }
+
+  .pickerGrid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+
+  .statsColumn {
+    grid-template-columns: 1fr;
+  }
+
+  .mentalColumn {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .categoryTabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .scaleControl {
+    gap: var(--space-xs);
+  }
+
+  .predictionStats {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ========================================
+   繧ｹ繧ｯ繝ｭ繝ｼ繝ｫ繝舌・縺ｮ繧ｹ繧ｿ繧､繝ｪ繝ｳ繧ｰ
+   ======================================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 45, 120, 0.4);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-green);
+}
+
+/* ===== Matches view (History) 窶・view specific overrides ===== */
+.matchesViewContainer{
+  display:grid;
+  gap:var(--space-lg);
+}
+
+/* muted/mono helpers used in MatchesView.tsx */
+.matchesViewContainer .textMuted{ color:var(--color-text-muted); }
+.matchesViewContainer .monoText{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
+/* WIN/LOSE chip */
+.matchesViewContainer .matchResult{
+  font-weight:900;
+  letter-spacing:0.04em;
+  display:inline-flex;
+  align-items:center;
+  gap:0.5rem;
+  padding:0.35rem 0.75rem;
+  border-radius:var(--radius-full);
+  border:1px solid var(--color-border);
+  background:rgba(255,255,255,0.03);
+}
+.matchesViewContainer .matchResultWin{
+  color:var(--color-success);
+  border-color:rgba(118,255,3,0.35);
+  box-shadow:0 0 18px rgba(118,255,3,0.12);
+}
+.matchesViewContainer .matchResultLose{
+  color:var(--color-error);
+  border-color:rgba(255,45,120,0.35);
+  box-shadow:0 0 18px rgba(255,45,120,0.12);
+}
+.matchesViewContainer .matchResultOther{ color:var(--color-text-secondary); }
+
+/* Ink card treatment for existing blocks */
+.matchesViewContainer .historyCard,
+.matchesViewContainer .historySection,
+.matchesViewContainer .historyTableWrapper{
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(196,181,253,0.22);
+  border-radius:var(--radius-xl);
+  box-shadow:0 0 0 1px rgba(255,255,255,0.06), 0 20px 50px rgba(0,0,0,0.35);
+}
+.matchesViewContainer .historyCard::before,
+.matchesViewContainer .historySection::before,
+.matchesViewContainer .historyTableWrapper::before{
+  content:"";
+  position:absolute;
+  left:0; right:0; top:0;
+  height:4px;
+  background:linear-gradient(90deg, var(--color-purple) 0%, var(--color-pink) 33%, var(--color-orange) 66%, var(--color-green) 100%);
+  opacity:0.95;
+}
+
+/* Header badge in MatchesView.tsx */
+.matchesViewContainer .headerBadge{
+  border:1px solid rgba(118,255,3,0.35);
+  box-shadow:0 0 18px rgba(118,255,3,0.12);
+}
+
+/* Detail rows: label/value contrast */
+.matchesViewContainer .historyRow span{ color:var(--color-text-muted); font-weight:700; }
+.matchesViewContainer .historyRow strong{ color:var(--color-text-primary); font-weight:900; }
+
+
+/* ===== Admin view 窶・view specific overrides ===== */
+.adminPageContainer{
+  display:grid;
+  gap:var(--space-lg);
+}
+
+/* Admin 窶彡ards窶・in AdminView.tsx */
+.adminPageContainer .adminCard{
+  position:relative;
+  overflow:hidden;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(196,181,253,0.22);
+  border-radius:var(--radius-xl);
+  box-shadow:0 0 0 1px rgba(255,255,255,0.06), 0 20px 50px rgba(0,0,0,0.35);
+}
+.adminPageContainer .adminCard::before{
+  content:"";
+  position:absolute;
+  left:0; right:0; top:0;
+  height:4px;
+  background:linear-gradient(90deg, var(--color-purple) 0%, var(--color-pink) 33%, var(--color-orange) 66%, var(--color-green) 100%);
+  opacity:0.95;
+}
+
+/* list rows */
+.adminPageContainer .adminListItem{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:var(--space-md);
+  background:rgba(255,255,255,0.02);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:var(--radius-lg);
+  padding:var(--space-md) var(--space-lg);
+  transition: all var(--transition-normal);
+}
+.adminPageContainer .adminListItem:hover{
+  background:rgba(255,255,255,0.04);
+  border-color:rgba(255,45,120,0.22);
+}
+
+/* Detail rows */
+.adminPageContainer .historyRow span{ color:var(--color-text-muted); font-weight:700; }
+.adminPageContainer .historyRow strong{ color:var(--color-text-primary); font-weight:900; }
+
+/* Tokens */
+.adminPageContainer .badge,
+.adminPageContainer .tag{
+  display:inline-flex;
+  align-items:center;
+  gap:0.4rem;
+  padding:0.25rem 0.6rem;
+  border-radius:var(--radius-full);
+  border:1px solid var(--color-border);
+  background:rgba(255,255,255,0.03);
+  color:var(--color-text-secondary);
+  font-weight:800;
+  font-size:0.75rem;
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+}
+
+
+
+/* ===== Existing App.css (was imported by App.tsx) ===== */
+
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  
+  --color-bg: #1a1a2e;
+  --color-surface: #2d2b55;
+  --color-surface-elevated: #3b3870;
+  --color-border: rgba(255, 255, 255, 0.12);
+  --color-border-focus: rgba(255, 45, 120, 0.5);
+
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #c4b5fd;
+  --color-text-muted: #8b7ec8;
+
+  
+  --color-pink: #FF2D78;
+  --color-green: #76FF03;
+  --color-orange: #FF6600;
+  --color-purple: #7B26FF;
+  --color-cyan: #00CED1;
+  --color-yellow: #E8FF00;
+
+  --color-primary: #FF2D78;
+  --color-primary-hover: #FF6600;
+  --color-primary-light: rgba(255, 45, 120, 0.12);
+
+  --color-success: #76FF03;
+  --color-success-light: rgba(118, 255, 3, 0.12);
+  --color-error: #FF2D78;
+  --color-error-light: rgba(255, 45, 120, 0.12);
+  --color-warning: #FF6600;
+
+  
+  --gradient-primary: linear-gradient(135deg, #FF2D78 0%, #FF6600 100%);
+  --gradient-success: linear-gradient(135deg, #76FF03 0%, #00CED1 100%);
+  --gradient-ink: linear-gradient(135deg, #7B26FF 0%, #FF2D78 50%, #76FF03 100%);
+  --gradient-card: linear-gradient(135deg, rgba(123, 38, 255, 0.08) 0%, rgba(255, 45, 120, 0.08) 100%);
+
+  
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 20px rgba(255, 45, 120, 0.4);
+  --shadow-glow-green: 0 0 20px rgba(118, 255, 3, 0.4);
+  --shadow-glow-purple: 0 0 20px rgba(123, 38, 255, 0.4);
+  --shadow-glow-orange: 0 0 20px rgba(255, 102, 0, 0.4);
+
+  
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+
+  
+  --radius-sm: 0.75rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 2rem;
+  --radius-full: 9999px;
+
+  
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+  font-family: "Noto Sans JP", "Nunito", ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Roboto", "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+svg {
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.appContainer {
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse 80% 60% at 15% 10%, rgba(123, 38, 255, 0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 80% at 85% 20%, rgba(255, 45, 120, 0.05) 0%, transparent 70%),
+    radial-gradient(ellipse 70% 50% at 70% 80%, rgba(118, 255, 3, 0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 70% at 20% 75%, rgba(255, 102, 0, 0.04) 0%, transparent 70%),
+    radial-gradient(circle at 50% 50%, rgba(0, 206, 209, 0.03) 0%, transparent 60%),
+    var(--color-bg);
+  position: relative;
+}
+
+.appHeader {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(4, 12, 30, 0.9);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(124, 146, 184, 0.22);
+  padding: var(--space-sm) var(--space-md);
+  min-height: 4rem;
+}
+
+.headerContent {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.appTitle {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  line-height: 1;
+  font-weight: 900;
+  background: linear-gradient(135deg, #7f9bff 0%, #7f6dff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 0.02em;
+}
+
+.headerBadge {
+  padding: var(--space-xs) var(--space-md);
+  background: rgba(73, 98, 168, 0.22);
+  color: #8ea6ff;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: 1px solid rgba(133, 157, 220, 0.32);
+}
+
+.navigation {
+  position: relative;
+  top: 0;
+  z-index: 150;
+  background: rgba(4, 12, 30, 0.86);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(124, 146, 184, 0.2);
+  padding: var(--space-sm) var(--space-md);
+  margin-bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.navBtn {
+  height: 3rem;
+  padding: 0 var(--space-xl);
+  background: rgba(11, 24, 52, 0.82);
+  border: 1px solid rgba(135, 156, 196, 0.2);
+  border-radius: var(--radius-lg);
+  color: #b6c4db;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.navBtn svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.navBtn:hover {
+  background: rgba(42, 65, 108, 0.46);
+  border-color: rgba(160, 181, 223, 0.34);
+  color: #d4e0f3;
+  transform: none;
+  box-shadow: none;
+}
+
+.navBtn.active {
+  background: linear-gradient(135deg, #6f7fff 0%, #6d63de 100%);
+  border-color: rgba(180, 195, 255, 0.5);
+  color: white;
+  box-shadow: 0 0 20px rgba(89, 120, 255, 0.45);
+}
+
+.navBtn.active::before {
+  content: none;
+}
 
 .mainContent {
   max-width: 1400px;
@@ -262,9 +2180,51 @@ body.modal-open .appContainer {
   }
 }
 
-/* ========================================
-   セクション共通スタイル
-   ======================================== */
+/* 笏笏 History Tab Bar 笏笏 */
+.historyTabBar {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+  background: rgba(11, 24, 52, 0.6);
+  border: 1px solid rgba(135, 156, 196, 0.18);
+  border-radius: var(--radius-xl);
+  padding: 6px;
+}
+
+.historyTabBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  color: var(--color-text-muted);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.historyTabBtn svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.historyTabBtn:hover {
+  color: var(--color-text-secondary);
+  background: rgba(135, 156, 196, 0.08);
+}
+
+.historyTabBtn.active {
+  background: rgba(127, 155, 255, 0.15);
+  border-color: rgba(127, 155, 255, 0.35);
+  color: #8ea6ff;
+  box-shadow: 0 0 12px rgba(127, 155, 255, 0.15);
+}
 
 .inputSection,
 .predictionSection,
@@ -276,6 +2236,18 @@ body.modal-open .appContainer {
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), var(--shadow-lg);
   position: relative;
   overflow: hidden;
+}
+
+.inputSection::before,
+.predictionSection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #7B26FF 0%, #FF2D78 33%, #FF6600 66%, #76FF03 100%);
+  opacity: 0.9;
 }
 
 .sectionHeader {
@@ -293,10 +2265,6 @@ body.modal-open .appContainer {
   font-size: 0.875rem;
   color: var(--color-text-secondary);
 }
-
-/* ========================================
-   フォームスタイル
-   ======================================== */
 
 .inputForm {
   display: grid;
@@ -325,7 +2293,6 @@ body.modal-open .appContainer {
   stroke: var(--color-orange);
 }
 
-/* PC表示時�E2カラムレイアウチE*/
 @media (min-width: 1025px) {
   .inputForm {
     grid-template-columns: repeat(2, 1fr);
@@ -352,10 +2319,6 @@ body.modal-open .appContainer {
     grid-column: 1 / -1;
   }
 }
-
-/* ========================================
-   日時�E劁E
-   ======================================== */
 
 .dateTimeGroup {
   display: flex;
@@ -408,6 +2371,29 @@ body.modal-open .appContainer {
   margin: 0;
 }
 
+.dateSeparator {
+  color: var(--color-text-muted);
+  font-weight: 600;
+  user-select: none;
+}
+
+.timeInputWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0 var(--space-md);
+  height: 3rem;
+  transition: all var(--transition-normal);
+}
+
+.timeInputWrapper:focus-within {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px rgba(255, 45, 120, 0.15);
+}
+
 .timeInput {
   background: transparent;
   border: none;
@@ -458,10 +2444,6 @@ body.modal-open .appContainer {
   color: var(--color-orange);
 }
 
-/* ========================================
-   スチE�Eジ選抁E
-   ======================================== */
-
 .stageGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -505,10 +2487,6 @@ body.modal-open .appContainer {
   flex-shrink: 0;
   stroke: currentColor;
 }
-
-/* ========================================
-   武器選抁E
-   ======================================== */
 
 .weaponSelectBtn {
   width: 100%;
@@ -658,10 +2636,6 @@ body.modal-open .appContainer {
   border-color: var(--color-pink);
   color: var(--color-pink);
 }
-
-/* ========================================
-   メンタル状態スケール
-   ======================================== */
 
 .mentalColumn {
   display: grid;
@@ -853,10 +2827,6 @@ body.modal-open .appContainer {
   background: rgba(255, 102, 0, 0.12);
 }
 
-/* ========================================
-   メモ入劁E
-   ======================================== */
-
 .memoInput {
   width: 100%;
   padding: var(--space-md);
@@ -880,10 +2850,6 @@ body.modal-open .appContainer {
   border-color: var(--color-border-focus);
   box-shadow: 0 0 0 3px rgba(255, 45, 120, 0.15);
 }
-
-/* ========================================
-   ボタン
-   ======================================== */
 
 .formActions {
   display: flex;
@@ -927,10 +2893,6 @@ body.modal-open .appContainer {
   cursor: not-allowed;
 }
 
-/* ========================================
-   メチE��ージボックス
-   ======================================== */
-
 .messageBox {
   padding: var(--space-md) var(--space-lg);
   border-radius: var(--radius-md);
@@ -950,10 +2912,6 @@ body.modal-open .appContainer {
   color: var(--color-error);
   border: 1px solid var(--color-error);
 }
-
-/* ========================================
-   ピッカーモーダル
-   ======================================== */
 
 .pickerOverlay {
   position: fixed;
@@ -1133,10 +3091,6 @@ body.modal-open .appContainer {
   right: var(--space-xs);
 }
 
-/* ========================================
-   予測結果表示
-   ======================================== */
-
 .predictionContent {
   display: grid;
   gap: var(--space-2xl);
@@ -1188,10 +3142,6 @@ body.modal-open .appContainer {
   font-weight: 600;
   text-align: center;
 }
-
-/* ==========================================
-   AI刁E��演�Eのスタイル
-   ========================================== */
 
 .analysisSection {
   position: fixed;
@@ -1442,10 +3392,6 @@ body.modal-open .appContainer {
   }
 }
 
-/* ==========================================
-   予測結果のアニメーション
-   ========================================== */
-
 .predictionSection.animated {
   animation: slideUp 0.6s ease-out;
   min-height: 100vh;
@@ -1663,10 +3609,6 @@ body.modal-open .appContainer {
   transform: translateY(0);
 }
 
-/* ========================================
-   履歴チE�Eブル
-   ======================================== */
-
 .filterSection {
   background: var(--color-surface-elevated);
   border: 1px solid var(--color-border);
@@ -1762,6 +3704,8 @@ body.modal-open .appContainer {
 }
 
 .historyTableWrapper {
+  width: 100%;
+  min-width: 0;
   overflow-x: auto;
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
@@ -1936,10 +3880,6 @@ body.modal-open .appContainer {
   color: var(--color-text-muted);
 }
 
-/* ========================================
-   レスポンシブ対忁E
-   ======================================== */
-
 @media (max-width: 768px) {
   .navigation {
     gap: var(--space-xs);
@@ -2029,12 +3969,6 @@ body.modal-open .appContainer {
   }
 }
 
-/* ========================================
-   背景画像対応�Eスタイル�E�趁E��ンパクト版�E�E
-   白背景を極限まで削減し、テキスト影で可読性を確俁E
-   ======================================== */
-
-/* 背景画像を持つ要素の共通スタイル */
 .pickerItem,
 .selectBtn,
 .weaponSelectBtn {
@@ -2046,7 +3980,6 @@ body.modal-open .appContainer {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* 背景画像�E上にオーバ�Eレイを追加�E�より薄く！E*/
 .pickerItem::before,
 .selectBtn::before,
 .weaponSelectBtn::before {
@@ -2056,7 +3989,7 @@ body.modal-open .appContainer {
   left: 0;
   right: 0;
   bottom: 0;
-  /* オーバ�Eレイを薄くして画像を見せめE*/
+  
   background: linear-gradient(
     135deg,
     rgba(0, 0, 0, 0.25) 0%,
@@ -2067,7 +4000,6 @@ body.modal-open .appContainer {
   transition: background 0.3s ease;
 }
 
-/* チE��ストやアイコンをオーバ�Eレイの上に表示 */
 .pickerItem > *,
 .selectBtn > *,
 .weaponSelectBtn > * {
@@ -2075,19 +4007,15 @@ body.modal-open .appContainer {
   z-index: 2;
 }
 
-/* ========================================
-   ピッカーアイチE��専用スタイル
-   ======================================== */
-
 .pickerItemText {
   display: inline-block;
-  /* 白背景を削除し、テキスト影で可読性確俁E*/
+  
   background: transparent;
   padding: 4px 8px;
   border-radius: 4px;
   font-weight: 700;
   color: white;
-  /* 褁E��の影で可読性を確俁E*/
+  
   text-shadow: 
     0 2px 4px rgba(0, 0, 0, 0.9),
     0 0 12px rgba(0, 0, 0, 0.8),
@@ -2096,13 +4024,12 @@ body.modal-open .appContainer {
   transition: all 0.2s ease;
 }
 
-/* ピッカーアイチE��のホバー - 移動なぁE*/
 .pickerItem:hover {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
 }
 
 .pickerItem:hover::before {
-  /* ホバー時�Eさらに明るぁE*/
+  
   background: linear-gradient(
     135deg,
     rgba(0, 0, 0, 0.15) 0%,
@@ -2111,7 +4038,7 @@ body.modal-open .appContainer {
 }
 
 .pickerItem:hover .pickerItemText {
-  /* ホバー時も背景なし、影を強調するのみ */
+  
   text-shadow: 
     0 2px 6px rgba(0, 0, 0, 1),
     0 0 16px rgba(0, 0, 0, 0.9),
@@ -2119,7 +4046,6 @@ body.modal-open .appContainer {
   transform: scale(1.05);
 }
 
-/* アクチE��ブ状態�EピッカーアイチE�� */
 .pickerItem.active {
   transform: none;
   box-shadow: 0 8px 20px rgba(123, 38, 255, 0.3);
@@ -2141,13 +4067,9 @@ body.modal-open .appContainer {
     0 0 8px rgba(255, 255, 255, 0.6);
 }
 
-/* ========================================
-   セレクト�Eタン専用スタイル
-   ======================================== */
-
 .selectBtnText {
   display: inline-block;
-  /* 白背景を削除し、テキスト影で可読性確俁E*/
+  
   background: transparent;
   padding: 3px 6px;
   border-radius: 3px;
@@ -2162,7 +4084,6 @@ body.modal-open .appContainer {
   white-space: nowrap;
 }
 
-/* ホバー晁E- 移動なし、影のみで強調 */
 .selectBtn:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
@@ -2176,17 +4097,13 @@ body.modal-open .appContainer {
 }
 
 .selectBtn:hover .selectBtnText {
-  /* ホバー時も背景なし、影を強調するのみ */
+  
   text-shadow: 
     0 2px 6px rgba(0, 0, 0, 1),
     0 0 16px rgba(0, 0, 0, 0.9),
     0 0 8px rgba(255, 255, 255, 0.5);
   transform: scale(1.05);
 }
-
-/* ========================================
-   武器セレクト�Eタン専用スタイル
-   ======================================== */
 
 .weaponSelectBtn {
   min-height: 80px;
@@ -2234,7 +4151,7 @@ body.modal-open .appContainer {
 
 .weaponName {
   display: inline-block;
-  /* 白背景を削除 */
+  
   background: transparent;
   padding: 3px 8px;
   border-radius: 3px;
@@ -2250,7 +4167,7 @@ body.modal-open .appContainer {
 
 .weaponCategory {
   display: inline-block;
-  /* 白背景を削除 */
+  
   background: transparent;
   padding: 2px 6px;
   border-radius: 2px;
@@ -2264,7 +4181,7 @@ body.modal-open .appContainer {
 }
 
 .weaponSelectBtn:hover .weaponName {
-  /* ホバー時も背景なし、影を強調するのみ */
+  
   text-shadow: 
     0 2px 6px rgba(0, 0, 0, 1),
     0 0 16px rgba(0, 0, 0, 0.9),
@@ -2272,12 +4189,8 @@ body.modal-open .appContainer {
   transform: scale(1.05);
 }
 
-/* ========================================
-   アイコン調整
-   ======================================== */
-
 .checkIcon {
-  /* 白背景を維持E��チェチE��マ�Eクは見えにくいため�E�E*/
+  
   background: rgba(255, 255, 255, 0.95);
   border-radius: 50%;
   padding: 4px;
@@ -2287,7 +4200,7 @@ body.modal-open .appContainer {
 .selectIcon {
   position: relative;
   z-index: 2;
-  /* アイコンに影を追加して見やすく */
+  
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
   transition: transform 0.2s ease;
 }
@@ -2297,10 +4210,6 @@ body.modal-open .appContainer {
   transform: translateY(2px);
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.8));
 }
-
-/* ========================================
-   背景画像がなぁE��合�Eフォールバック
-   ======================================== */
 
 .pickerItem:not([style*="background-image"])::before,
 .selectBtn:not([style*="background-image"])::before,
@@ -2312,17 +4221,12 @@ body.modal-open .appContainer {
   );
 }
 
-/* 背景画像がなぁE��合�EチE��ストを通常の色に */
 .pickerItem:not([style*="background-image"]) .pickerItemText,
 .selectBtn:not([style*="background-image"]) .selectBtnText,
 .weaponSelectBtn:not([style*="background-image"]) .weaponName {
   color: #1a1a2e;
   text-shadow: none;
 }
-
-/* ========================================
-   レスポンシブ調整
-   ======================================== */
 
 @media (max-width: 768px) {
   .pickerItemText {
@@ -2345,17 +4249,13 @@ body.modal-open .appContainer {
     font-size: 0.65rem;
   }
 
-  /* モバイルではホバー効果なぁE*/
+  
   .pickerItem:hover,
   .selectBtn:hover,
   .weaponSelectBtn:hover {
     transform: none;
   }
 }
-
-/* ========================================
-   アニメーション
-   ======================================== */
 
 @keyframes imageLoad {
   from {
@@ -2374,7 +4274,6 @@ body.modal-open .appContainer {
   animation: imageLoad 0.3s ease-out;
 }
 
-/* 画像付き頁E��は hover でも背景の見え方を固定すめE*/
 .pickerItem[style*="background-image"]:hover::before,
 .selectBtn[style*="background-image"]:hover::before {
   background: linear-gradient(
@@ -2409,7 +4308,6 @@ body.modal-open .appContainer {
   background-repeat: no-repeat;
 }
 
-/* 選択済み頁E��は hover しても選択状態�Eオーバ�Eレイを維持E*/
 .weaponSelectBtn.selected[style*="background-image"]:hover::before,
 .pickerItem.active[style*="background-image"]:hover::before {
   background: linear-gradient(
@@ -2419,7 +4317,6 @@ body.modal-open .appContainer {
   );
 }
 
-/* 選択済み画像�Eタンは非hover時から背景描画を固定しておく */
 .weaponSelectBtn.selected[style*="background-image"],
 .pickerItem.active[style*="background-image"] {
   background-size: cover;
@@ -2428,7 +4325,6 @@ body.modal-open .appContainer {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* クリチE��時�EフィードバチE�� */
 .pickerItem:active,
 .selectBtn:active,
 .weaponSelectBtn:active {
@@ -2713,11 +4609,6 @@ body.modal-open .appContainer {
   }
 }
 
-/* ========================================
-   インクエフェクト�E背景裁E��
-   ======================================== */
-
-/* 背景のインクスプラチE��裁E�� */
 .appContainer::before {
   content: '';
   position: fixed;
@@ -2753,13 +4644,11 @@ body.modal-open .appContainer {
     radial-gradient(ellipse 45px 100px at 40% 70%, rgba(255, 102, 0, 0.03) 0%, transparent 70%);
 }
 
-/* appContainer直下�E子要素がインク裁E��の上に来るよぁE��する */
 .appContainer > * {
   position: relative;
   z-index: 1;
 }
 
-/* Keep sticky header/navigation above content cards */
 .appContainer > .appHeader {
   z-index: 100;
 }
@@ -2771,7 +4660,6 @@ body.modal-open .appContainer {
   align-items: center;
 }
 
-/* ボタンのインクスプラチE��ュホバーエフェクチE*/
 .submitBtn {
   position: relative;
   overflow: hidden;
@@ -2795,9 +4683,6 @@ body.modal-open .appContainer {
   height: 300px;
 }
 
-/* ナビゲーションボタンは既存スタイルのみ使用�E�E:afterなし！E*/
-
-/* セクションのインクドリチE�E風トップ�Eーダー */
 .inputSection::before,
 .predictionSection::before,
 .historySection::before {
@@ -2811,7 +4696,6 @@ body.modal-open .appContainer {
   opacity: 0.9;
 }
 
-/* インクドリチE�E風の波形ボ�Eダー */
 .inputSection::after,
 .predictionSection::after {
   content: '';
@@ -2829,7 +4713,6 @@ body.modal-open .appContainer {
   pointer-events: none;
 }
 
-/* インクスプラチE��風のアクセント（カード�E角！E*/
 .statCard::after,
 .mentalCard::after,
 .numberInputCard::after {
@@ -2852,7 +4735,6 @@ body.modal-open .appContainer {
   background: radial-gradient(circle, rgba(255, 45, 120, 0.1) 0%, transparent 70%);
 }
 
-/* 認証画面のインク裁E�� */
 .modernAuthSection::after {
   content: '';
   position: absolute;
@@ -2876,11 +4758,6 @@ body.modal-open .appContainer {
   border-radius: 50%;
   pointer-events: none;
 }
-
-
-/* ========================================
-   Splatoon Theme Unification (Color & FX Only)
-   ======================================== */
 
 :root {
   --color-bg: #090f17;
@@ -2946,12 +4823,15 @@ body {
 }
 
 .appTitle {
-  background: linear-gradient(135deg, #7B26FF 0%, #A855F7 55%, #C084FC 100%);
-  color: #C084FC;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: none;
+  /* Make the title a solid color (no gradient "cover") for a more unified header. */
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  -webkit-text-fill-color: currentColor;
+  color: #f5ffc7;
+  text-shadow:
+    0 0 10px rgba(17, 231, 255, 0.18),
+    0 0 18px rgba(255, 58, 180, 0.12);
 }
 
 .headerBadge {
@@ -2987,6 +4867,7 @@ body {
 .mentalCard,
 .numberInputCard,
 .historyTableWrapper,
+.historyCard,
 .adminCard {
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04), 0 12px 26px rgba(0, 0, 0, 0.36);
 }
@@ -3034,22 +4915,11 @@ body {
   background: linear-gradient(135deg, rgba(129, 52, 255, 0.28) 0%, rgba(255, 58, 180, 0.5) 100%);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-/* Mobile-safe responsive overrides */
 .historyList {
   display: none;
-  grid-template-columns: 1fr;
+  /* Use minmax(0, 1fr) so grid items are allowed to shrink with the viewport.
+     Without this, long/min-content children (e.g. tables) can force overflow. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-md);
 }
 
@@ -3058,6 +4928,8 @@ body {
   border-radius: var(--radius-md);
   background: var(--color-surface-elevated);
   overflow: hidden;
+  width: 100%;
+  min-width: 0;
 }
 
 .historyCardSummary {
@@ -3096,6 +4968,7 @@ body {
   gap: var(--space-sm);
   padding: 0 var(--space-md) var(--space-md);
   border-top: 1px solid var(--color-border);
+  min-width: 0;
 }
 
 .historyRow {
@@ -3238,7 +5111,7 @@ body {
     height: 2.6rem;
   }
 }
-/* Admin responsive overrides */
+
 .adminMobileOnly {
   display: none;
 }
@@ -3289,10 +5162,7 @@ body {
     min-width: 0;
   }
 }
-/* Header responsive priority:
-   1) keep title single-line
-   2) hide ADMIN badge first
-   3) then shrink logout button */
+
 .headerUserRow {
   gap: var(--space-sm);
 }
@@ -3331,3 +5201,119 @@ body {
     font-size: 0.75rem;
   }
 }
+
+/* Splatoon-ish: subtle ink/noise overlay for the whole app */
+.appContainer::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.22;
+  background:
+    radial-gradient(120px 90px at 12% 18%, rgba(255, 45, 120, 0.22), transparent 70%),
+    radial-gradient(150px 110px at 82% 22%, rgba(118, 255, 3, 0.18), transparent 72%),
+    radial-gradient(140px 120px at 70% 78%, rgba(0, 206, 209, 0.16), transparent 70%),
+    radial-gradient(160px 120px at 22% 78%, rgba(255, 102, 0, 0.14), transparent 72%),
+    radial-gradient(90px 70px at 50% 50%, rgba(123, 38, 255, 0.10), transparent 70%);
+  filter: blur(0.2px);
+}
+
+
+/* ========================================
+   Splatoon3 Theme Unification (App-level overrides)
+   - Keep at the very bottom so it wins.
+   ======================================== */
+
+/* Ink/noise overlay across the whole app */
+.appContainer::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  opacity:0.22;
+  background:
+    radial-gradient(120px 90px at 12% 18%, rgba(255, 45, 120, 0.22), transparent 70%),
+    radial-gradient(150px 110px at 82% 22%, rgba(118, 255, 3, 0.18), transparent 72%),
+    radial-gradient(140px 120px at 70% 78%, rgba(0, 206, 209, 0.16), transparent 70%),
+    radial-gradient(160px 120px at 22% 78%, rgba(255, 102, 0, 0.14), transparent 72%),
+    radial-gradient(90px 70px at 50% 50%, rgba(123, 38, 255, 0.10), transparent 70%);
+  filter: blur(0.2px);
+}
+
+/* Ensure content stays above overlay */
+.appContainer > *{
+  position: relative;
+  z-index: 1;
+}
+
+/* View-level wrappers (used in TSX) */
+.matchesViewContainer,
+.adminViewContainer{
+  display:grid;
+  gap: var(--space-lg);
+}
+
+/* Result chips (Matches view) */
+.matchResult{
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  display:inline-flex;
+  align-items:center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: rgba(255,255,255,0.03);
+}
+.matchResultWin{
+  color: var(--color-green);
+  border-color: rgba(118,255,3,0.35);
+  box-shadow: 0 0 18px rgba(118,255,3,0.12);
+}
+.matchResultLose{
+  color: var(--color-pink);
+  border-color: rgba(255,45,120,0.35);
+  box-shadow: 0 0 18px rgba(255,45,120,0.12);
+}
+.matchResultOther{
+  color: var(--color-text-secondary);
+}
+
+/* Common 窶彿nk card窶・top stripe for the real classnames used in TSX */
+.historySection,
+.historyCard,
+.historyTableWrapper,
+.adminCard{
+  position: relative;
+  overflow: hidden;
+}
+.historySection::before,
+.historyCard::before,
+.historyTableWrapper::before,
+.adminCard::before{
+  content:"";
+  position:absolute;
+  left:0; right:0; top:0;
+  height:4px;
+  background: linear-gradient(90deg, #7B26FF 0%, #FF2D78 33%, #FF6600 66%, #76FF03 100%);
+  opacity: 0.95;
+}
+
+/* Admin list items hover (Splatoon-ish) */
+.adminListItem:hover{
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,45,120,0.22);
+}
+
+/* Make WIN/LOSE values pop a bit */
+.scoreWin{ text-shadow: 0 0 16px rgba(118,255,3,0.18); }
+.scoreLoss{ text-shadow: 0 0 16px rgba(255,45,120,0.16); }
+
+/* Improve muted text consistency */
+.textMuted{ color: var(--color-text-muted); }
+
+/* Mono helper */
+.monoText{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+

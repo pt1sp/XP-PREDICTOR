@@ -1,4 +1,4 @@
-import type { ViewType } from "./types";
+﻿import type { ViewType } from "./types";
 
 type NavigationProps = {
   currentView: ViewType;
@@ -14,6 +14,7 @@ export default function Navigation({
   return (
     <nav className="navigation">
       <button
+        type="button"
         className={`navBtn ${currentView === "predict" ? "active" : ""}`}
         onClick={() => onViewChange("predict")}
       >
@@ -25,6 +26,7 @@ export default function Navigation({
       </button>
 
       <button
+        type="button"
         className={`navBtn ${currentView === "record" ? "active" : ""}`}
         onClick={() => onViewChange("record")}
       >
@@ -36,6 +38,7 @@ export default function Navigation({
       </button>
 
       <button
+        type="button"
         className={`navBtn ${currentView === "history" ? "active" : ""}`}
         onClick={() => onViewChange("history")}
       >
@@ -47,6 +50,7 @@ export default function Navigation({
       </button>
 
       <button
+        type="button"
         className={`navBtn ${currentView === "settings" ? "active" : ""}`}
         onClick={() => onViewChange("settings")}
       >
@@ -59,6 +63,7 @@ export default function Navigation({
 
       {isAdmin && (
         <button
+          type="button"
           className={`navBtn ${currentView === "admin" ? "active" : ""}`}
           onClick={() => onViewChange("admin")}
         >

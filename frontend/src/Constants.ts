@@ -273,10 +273,12 @@ const weaponCategoryMap = new Map<string, WeaponCategory>(
   )
 );
 
-const configuredImageFormat =
-  (import.meta.env.VITE_ASSET_IMAGE_FORMAT as string | undefined)?.trim().toLowerCase() ?? "";
-
-const imageExtension = configuredImageFormat === "png" ? "png" : "webp";
+const imageExtension = (
+  (import.meta.env.VITE_ASSET_IMAGE_FORMAT as string | undefined)?.trim().toLowerCase() ===
+  "webp"
+)
+  ? "webp"
+  : "png";
 
 export function getWeaponCategory(weaponName: string): WeaponCategory | undefined {
   return weaponCategoryMap.get(weaponName);
