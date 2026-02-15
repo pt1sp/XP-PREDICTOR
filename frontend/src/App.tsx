@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useState } from "react";
 import "./App.css";
 import {
   clearAuthToken,
@@ -11,11 +11,7 @@ import {
   type Session,
 } from "./api";
 import Navigation from "./Navigation";
-import PredictView from "./PredictView";
-import RecordView from "./RecordView";
-import HistoryView from "./HistoryView";
 import AuthView from "./AuthView";
-import AdminView from "./AdminView";
 import type { ViewType } from "./types";
 
 const PredictView = lazy(() => import("./PredictView"));

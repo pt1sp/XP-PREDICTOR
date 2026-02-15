@@ -16,6 +16,11 @@ type AdminViewProps = {
   onNavigateToMatches: () => void;
 };
 
+function formatDateTime(value: string) {
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? "-" : d.toLocaleString("ja-JP");
+}
+
 export default function AdminView({ currentUserId, onNavigateToMatches }: AdminViewProps) {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [sessions, setSessions] = useState<SessionWithUser[]>([]);
