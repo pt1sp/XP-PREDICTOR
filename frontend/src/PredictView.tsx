@@ -572,53 +572,6 @@ export default function PredictView() {
                       );
                     })}
                   </div>
-                )}
-
-                <div className="pickerGrid">
-                  {(pickerOpen === "weapon" ? weaponCandidates : stageCandidates).map((name) => {
-                    const current =
-                      pickerOpen === "weapon"
-                        ? condition.weapon
-                        : pickerOpen === "stage1"
-                          ? condition.stage1
-                          : condition.stage2;
-
-                    const stageDuplicate =
-                      (pickerOpen === "stage1" && name === condition.stage2) ||
-                      (pickerOpen === "stage2" && name === condition.stage1);
-
-                    const active = name === current;
-
-                    return (
-                      <button
-                        key={name}
-                        type="button"
-                        className={`pickerItem ${active ? "active" : ""}`}
-                        disabled={stageDuplicate}
-                        style={{
-                          backgroundImage: pickerOpen === "weapon"
-                            ? `url(${getWeaponImagePath(name)})`
-                            : `url(${getStageImagePath(name)})`,
-                          opacity: stageDuplicate ? 0.45 : undefined,
-                          cursor: stageDuplicate ? "not-allowed" : undefined,
-                        }}
-                        onClick={() => {
-                          if (stageDuplicate) return;
-                          if (pickerOpen === "weapon") setConditionValue("weapon", name);
-                          if (pickerOpen === "stage1") setConditionValue("stage1", name);
-                          if (pickerOpen === "stage2") setConditionValue("stage2", name);
-                          setPickerOpen(null);
-                        }}
-                      >
-                        {active && (
-                          <svg className="checkIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <polyline points="20 6 9 17 4 12" />
-                          </svg>
-                        )}
-                        <span className="pickerItemText">{name}</span>
-                      </button>
-                    );
-                  })}
                 </div>
               </div>,
               document.body

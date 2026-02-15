@@ -1261,7 +1261,6 @@ app.post("/api/sessions", (req, res) => {
       .prepare(`SELECT * FROM "Session" WHERE id = ?`)
       .get(Number(result.lastInsertRowid)) as SessionRow;
 
-    invalidateSessionRecordCache();
     res.json(created);
   } catch (err) {
     console.error(err);

@@ -13,10 +13,9 @@ import "./AdminView.css";
 
 type AdminViewProps = {
   currentUserId: number;
-  onNavigateToMatches: () => void;
 };
 
-export default function AdminView({ currentUserId, onNavigateToMatches }: AdminViewProps) {
+export default function AdminView({ currentUserId }: AdminViewProps) {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [sessions, setSessions] = useState<SessionWithUser[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<number | "">("");
@@ -114,17 +113,6 @@ export default function AdminView({ currentUserId, onNavigateToMatches }: AdminV
         </div>
 
         {msg && <div className="messageBox error">{msg}</div>}
-
-        <div className="filterSection" style={{ marginTop: 10 }}>
-          <div className="filterControls">
-            <div className="filterGroup">
-              <label className="filterLabel">SplatNet3 Matches</label>
-              <button type="button" className="quickBtn" onClick={onNavigateToMatches}>
-                Open matches
-              </button>
-            </div>
-          </div>
-        </div>
 
         <div className="filterSection">
           <div className="filterControls">

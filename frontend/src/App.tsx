@@ -65,7 +65,7 @@ export default function App() {
   }, [reload]);
 
   useEffect(() => {
-    if (!isAdmin && (currentView === "admin" || currentView === "matches")) {
+    if (!isAdmin && currentView === "admin") {
       setCurrentView("predict");
     }
   }, [currentView, isAdmin]);
