@@ -1,4 +1,5 @@
 ﻿import { Suspense, lazy, useCallback, useEffect, useState } from "react";
+import "./App.css";
 import {
   clearAuthToken,
   deleteSession,
@@ -144,22 +145,23 @@ export default function App() {
         </div>
       </header>
 
-      <Navigation
-        currentView={currentView}
-        isAdmin={isAdmin}
-        onViewChange={setCurrentView}
-      />
+      <Navigation currentView={currentView} isAdmin={isAdmin} onViewChange={setCurrentView} />
 
       <main className="mainContent">
         {msg && <div className="messageBox error">{msg}</div>}
-        <Suspense fallback={<div className="emptyState"><p>読み込み中...</p></div>}>
+        <Suspense
+          fallback={
+            <div className="emptyState">
+              <p>読み込み中...</p>
+            </div>
+          }
+        >
           {currentView === "predict" && <PredictView />}
-          {currentView === "record" && (
-            <RecordView onRecordSaved={handleRecordSaved} />
-          )}
+          {currentView === "record" && <RecordView onRecordSaved={handleRecordSaved} />}
           {currentView === "history" && (
             <HistoryView sessions={sessions} onDeleteSession={handleDeleteSession} />
           )}
+          {currentView === "settings" && <SettingsView />}
           {currentView === "admin" && isAdmin && (
             <AdminView
               currentUserId={user.id}
@@ -169,7 +171,6 @@ export default function App() {
           {currentView === "matches" && isAdmin && (
             <MatchesView onBack={() => setCurrentView("admin")} />
           )}
-          {currentView === "settings" && <SettingsView />}
         </Suspense>
       </main>
     </div>

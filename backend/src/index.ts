@@ -304,16 +304,28 @@ function requireAdmin(req: Request, res: Response): DbUser | null {
 
 function fetchSessionsByUser(userId: number): SessionRow[] {
   return db
-    .prepare(`SELECT * FROM "Session" WHERE userId = ? ORDER BY playedAt DESC`)
+    .prepare(
+      `SELECT
+        id, userId, playedAt, rule, stage1, stage2, weapon, wins, losses,
+        fatigue, irritability, concentration, startXp, endXp, memo, createdAt
+       FROM "Session"
+       WHERE userId = ?
+       ORDER BY playedAt DESC`
+    )
     .all(userId) as SessionRow[];
 }
 
 function fetchAllSessions(): SessionRow[] {
   return db
-    .prepare(`SELECT * FROM "Session" ORDER BY playedAt ASC, id ASC`)
+    .prepare(
+      `SELECT
+        id, userId, playedAt, rule, stage1, stage2, weapon, wins, losses,
+        fatigue, irritability, concentration, startXp, endXp, memo, createdAt
+       FROM "Session"
+       ORDER BY playedAt ASC, id ASC`
+    )
     .all() as SessionRow[];
 }
-
 function ensureBuiltinAdminAccount() {
   if (!BUILTIN_ADMIN_PASSWORD) {
     console.warn("BUILTIN_ADMIN_PASSWORD is not configured; skipping bootstrap admin creation.");
@@ -1034,7 +1046,6 @@ app.post("/api/collector-tokens", (req, res) => {
   // Return only once; caller should store securely.
   res.json({ token });
 });
-
 app.delete("/api/admin/sessions/:id", (req, res) => {
   const admin = requireAdmin(req, res);
   if (!admin) return;
@@ -1250,6 +1261,7 @@ app.post("/api/sessions", (req, res) => {
       .prepare(`SELECT * FROM "Session" WHERE id = ?`)
       .get(Number(result.lastInsertRowid)) as SessionRow;
 
+    invalidateSessionRecordCache();
     res.json(created);
   } catch (err) {
     console.error(err);
@@ -1364,7 +1376,15 @@ const projectRoot = path.resolve(__dirname, "../../");
 const frontendDistPath = path.join(projectRoot, "frontend/dist");
 
 if (fs.existsSync(frontendDistPath)) {
-  app.use(express.static(frontendDistPath));
+  app.use(
+    express.static(frontendDistPath, {
+      setHeaders: (res, filePath) => {
+        if (/\.(js|css|png|jpg|jpeg|gif|webp|avif|svg)$/i.test(filePath)) {
+          res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+        }
+      },
+    })
+  );
   app.get(/^\/(?!api|assets\/).*/, (_req, res) => {
     res.sendFile(path.join(frontendDistPath, "index.html"));
   });

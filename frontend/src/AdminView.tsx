@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import {
   deleteAdminSession,
   fetchAdminSessions,
@@ -15,23 +15,17 @@ type AdminViewProps = {
   onNavigateToMatches: () => void;
 };
 
-function formatDateTime(value: string) {
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? "-" : d.toLocaleString("ja-JP");
-}
-
 export default function AdminView({ currentUserId, onNavigateToMatches }: AdminViewProps) {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [sessions, setSessions] = useState<SessionWithUser[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<number | "">("");
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(true);
-  const [deletingSessionId, setDeletingSessionId] = useState<number | null>(null);
-
   const [evalResult, setEvalResult] = useState<OfflineEvaluationResult | null>(null);
   const [evalLoading, setEvalLoading] = useState(false);
   const [warmup, setWarmup] = useState(6);
   const [evalLimit, setEvalLimit] = useState(120);
+  const [deletingSessionId, setDeletingSessionId] = useState<number | null>(null);
 
   async function reload(targetUserId?: number) {
     setLoading(true);
@@ -44,7 +38,7 @@ export default function AdminView({ currentUserId, onNavigateToMatches }: AdminV
       setSessions(nextSessions);
       setMsg("");
     } catch (err) {
-      setMsg(`Failed to load admin data: ${String(err)}`);
+      setMsg(`管理データ取得に失敗: ${String(err)}`);
     } finally {
       setLoading(false);
     }
@@ -64,32 +58,15 @@ export default function AdminView({ currentUserId, onNavigateToMatches }: AdminV
       await updateUserRole(userId, role);
       await reload(selectedUserId === "" ? undefined : selectedUserId);
     } catch (err) {
-      setMsg(`Failed to change role: ${String(err)}`);
-    }
-  }
-
-  async function handleDeleteSession(sessionId: number) {
-    if (deletingSessionId !== null) return;
-    const ok = window.confirm("Delete this session?");
-    if (!ok) return;
-
-    setDeletingSessionId(sessionId);
-    try {
-      await deleteAdminSession(sessionId);
-      await reload(selectedUserId === "" ? undefined : selectedUserId);
-    } catch (err) {
-      setMsg(`Failed to delete session: ${String(err)}`);
-    } finally {
-      setDeletingSessionId(null);
+      setMsg(`権限更新に失敗: ${String(err)}`);
     }
   }
 
   async function runOfflineEvaluation() {
     if (selectedUserId === "") {
-      setMsg("Select a target user first.");
+      setMsg("オフライン評価は対象ユーザーを選択して実行してください");
       return;
     }
-
     setEvalLoading(true);
     try {
       const result = await fetchOfflineEvaluation({
@@ -100,22 +77,39 @@ export default function AdminView({ currentUserId, onNavigateToMatches }: AdminV
       setEvalResult(result);
       setMsg("");
     } catch (err) {
-      setMsg(`Offline evaluation failed: ${String(err)}`);
+      setMsg(`オフライン評価に失敗: ${String(err)}`);
       setEvalResult(null);
     } finally {
       setEvalLoading(false);
     }
   }
 
+  async function handleDeleteSession(sessionId: number) {
+    if (deletingSessionId !== null) return;
+    const ok = window.confirm("この試合記録を削除しますか？");
+    if (!ok) return;
+
+    setDeletingSessionId(sessionId);
+    try {
+      await deleteAdminSession(sessionId);
+      await reload(selectedUserId === "" ? undefined : selectedUserId);
+    } catch (err) {
+      setMsg(`記録削除に失敗: ${String(err)}`);
+    } finally {
+      setDeletingSessionId(null);
+    }
+  }
+
   const pct = (value: number) => `${Math.round(value * 1000) / 10}%`;
   const signed = (value: number) => `${value >= 0 ? "+" : ""}${Math.round(value)}`;
+  const formatDateTime = (value: string) => new Date(value).toLocaleString("ja-JP");
 
   return (
-    <div className="viewContainer adminViewContainer adminPageContainer">
+    <div className="viewContainer adminViewContainer">
       <section className="historySection">
         <div className="sectionHeader">
-          <h2 className="sectionTitle">Admin</h2>
-          <div className="sectionSubtitle">Users, sessions, and offline evaluation</div>
+          <h2 className="sectionTitle">管理者ビュー</h2>
+          <div className="sectionSubtitle">ユーザー管理と全体履歴の確認</div>
         </div>
 
         {msg && <div className="messageBox error">{msg}</div>}
@@ -125,7 +119,7 @@ export default function AdminView({ currentUserId, onNavigateToMatches }: AdminV
             <div className="filterGroup">
               <label className="filterLabel">SplatNet3 Matches</label>
               <button type="button" className="quickBtn" onClick={onNavigateToMatches}>
-                Open matches
+                matches を開く
               </button>
             </div>
           </div>
@@ -134,7 +128,7 @@ export default function AdminView({ currentUserId, onNavigateToMatches }: AdminV
         <div className="filterSection">
           <div className="filterControls">
             <div className="filterGroup">
-              <label className="filterLabel">Target user</label>
+              <label className="filterLabel">対象ユーザー</label>
               <select
                 className="filterSelect"
                 value={selectedUserId}
@@ -145,7 +139,7 @@ export default function AdminView({ currentUserId, onNavigateToMatches }: AdminV
                   void reload(typeof nextId === "number" ? nextId : undefined);
                 }}
               >
-                <option value="">All users</option>
+                <option value="">全ユーザー</option>
                 {users.map((u) => (
                   <option key={u.id} value={u.id}>
                     {u.loginId}
@@ -158,14 +152,14 @@ export default function AdminView({ currentUserId, onNavigateToMatches }: AdminV
 
         <div className="adminGrid">
           <div className="adminCard">
-            <h3 className="filterTitle">Users</h3>
+            <h3 className="filterTitle">ユーザー一覧</h3>
             <div className="adminList">
               {users.map((u) => (
                 <div className="adminListItem" key={u.id}>
                   <div>
                     <strong>{u.loginId}</strong>
                     <small>
-                      Role: {u.role} / Sessions: {u._count.sessions}
+                      ロール: {u.role} / 記録: {u._count.sessions}件
                     </small>
                   </div>
                   <div className="adminActions">
@@ -196,16 +190,15 @@ export default function AdminView({ currentUserId, onNavigateToMatches }: AdminV
 
           <div className="adminCard">
             <h3 className="filterTitle">
-              Sessions {targetUser ? `(${targetUser.loginId})` : "(All users)"}
+              履歴一覧 {targetUser ? `(${targetUser.loginId})` : "(全ユーザー)"}
             </h3>
-
             {loading ? (
               <div className="emptyState">
-                <p>Loading...</p>
+                <p>読み込み中...</p>
               </div>
             ) : sessions.length === 0 ? (
               <div className="emptyState">
-                <p>No sessions.</p>
+                <p>表示データがありません</p>
               </div>
             ) : (
               <>
@@ -213,12 +206,12 @@ export default function AdminView({ currentUserId, onNavigateToMatches }: AdminV
                   <table className="historyTable">
                     <thead>
                       <tr>
-                        <th>Played At</th>
-                        <th>User</th>
-                        <th>Weapon</th>
-                        <th>W</th>
-                        <th>L</th>
-                        <th>Action</th>
+                        <th>日時</th>
+                        <th>ユーザー</th>
+                        <th>武器</th>
+                        <th>勝</th>
+                        <th>敗</th>
+                        <th>操作</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -236,7 +229,7 @@ export default function AdminView({ currentUserId, onNavigateToMatches }: AdminV
                               disabled={deletingSessionId === s.id}
                               onClick={() => void handleDeleteSession(s.id)}
                             >
-                              {deletingSessionId === s.id ? "Deleting..." : "Delete"}
+                              {deletingSessionId === s.id ? "削除中..." : "削除"}
                             </button>
                           </td>
                         </tr>
@@ -244,7 +237,6 @@ export default function AdminView({ currentUserId, onNavigateToMatches }: AdminV
                     </tbody>
                   </table>
                 </div>
-
                 <div className="adminSessionList adminMobileOnly">
                   {sessions.map((s) => (
                     <details key={`admin-session-${s.id}`} className="historyCard">
@@ -278,53 +270,61 @@ export default function AdminView({ currentUserId, onNavigateToMatches }: AdminV
         </div>
 
         <div className="adminCard" style={{ marginTop: 20 }}>
-          <h3 className="filterTitle">Offline evaluation</h3>
-
+          <h3 className="filterTitle">オフライン評価（時系列バックテスト）</h3>
           <div className="filterControls">
             <div className="filterGroup">
-              <label className="filterLabel">Warmup</label>
+              <label className="filterLabel">ウォームアップ件数</label>
               <input
                 className="filterInput"
                 type="number"
                 min={3}
                 max={30}
                 value={warmup}
-                onChange={(e) => setWarmup(Math.max(3, Math.min(30, Number(e.target.value) || 6)))}
+                onChange={(e) =>
+                  setWarmup(Math.max(3, Math.min(30, Number(e.target.value) || 6)))
+                }
               />
             </div>
             <div className="filterGroup">
-              <label className="filterLabel">Limit</label>
+              <label className="filterLabel">評価件数上限</label>
               <input
                 className="filterInput"
                 type="number"
                 min={20}
                 max={500}
                 value={evalLimit}
-                onChange={(e) => setEvalLimit(Math.max(20, Math.min(500, Number(e.target.value) || 120)))}
+                onChange={(e) =>
+                  setEvalLimit(Math.max(20, Math.min(500, Number(e.target.value) || 120)))
+                }
               />
             </div>
             <div className="filterGroup">
-              <label className="filterLabel">Run</label>
-              <button className="quickBtn" type="button" disabled={evalLoading} onClick={() => void runOfflineEvaluation()}>
-                {evalLoading ? "Running..." : "Run evaluation"}
+              <label className="filterLabel">実行</label>
+              <button
+                className="quickBtn"
+                type="button"
+                disabled={evalLoading}
+                onClick={() => void runOfflineEvaluation()}
+              >
+                {evalLoading ? "評価中..." : "オフライン評価を実行"}
               </button>
             </div>
           </div>
 
           {evalResult && (
             <>
-              <div className="historyTableWrapper" style={{ marginTop: 12 }}>
+              <div className="historyTableWrapper adminTableOnly" style={{ marginTop: 12 }}>
                 <table className="historyTable">
                   <thead>
                     <tr>
-                      <th>Evaluated</th>
-                      <th>WinRate MAE</th>
-                      <th>WinRate RMSE</th>
+                      <th>評価件数</th>
+                      <th>勝率MAE</th>
+                      <th>勝率RMSE</th>
                       <th>XP MAE</th>
                       <th>XP RMSE</th>
-                      <th>WinRate CI cov</th>
-                      <th>XP CI cov</th>
-                      <th>Rec precision</th>
+                      <th>勝率CI被覆率</th>
+                      <th>XP CI被覆率</th>
+                      <th>推奨精度</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -341,41 +341,64 @@ export default function AdminView({ currentUserId, onNavigateToMatches }: AdminV
                   </tbody>
                 </table>
               </div>
-
               <div className="adminEvalSummary adminMobileOnly" style={{ marginTop: 12 }}>
                 <div className="historyCardDetails">
-                  <div className="historyRow"><span>Evaluated</span><strong>{evalResult.evaluatedCount}</strong></div>
-                  <div className="historyRow"><span>WinRate MAE</span><strong>{pct(evalResult.summary.maeWinRate)}</strong></div>
-                  <div className="historyRow"><span>WinRate RMSE</span><strong>{pct(evalResult.summary.rmseWinRate)}</strong></div>
-                  <div className="historyRow"><span>XP MAE</span><strong>{Math.round(evalResult.summary.maeXpDelta)}</strong></div>
-                  <div className="historyRow"><span>XP RMSE</span><strong>{Math.round(evalResult.summary.rmseXpDelta)}</strong></div>
-                  <div className="historyRow"><span>WinRate CI cov</span><strong>{pct(evalResult.summary.winRateCoverage)}</strong></div>
-                  <div className="historyRow"><span>XP CI cov</span><strong>{pct(evalResult.summary.xpDeltaCoverage)}</strong></div>
-                  <div className="historyRow"><span>Rec precision</span><strong>{pct(evalResult.summary.recommendationPrecision)}</strong></div>
+                  <div className="historyRow">
+                    <span>Evaluated</span>
+                    <strong>{evalResult.evaluatedCount}</strong>
+                  </div>
+                  <div className="historyRow">
+                    <span>WinRate MAE</span>
+                    <strong>{pct(evalResult.summary.maeWinRate)}</strong>
+                  </div>
+                  <div className="historyRow">
+                    <span>WinRate RMSE</span>
+                    <strong>{pct(evalResult.summary.rmseWinRate)}</strong>
+                  </div>
+                  <div className="historyRow">
+                    <span>XP MAE</span>
+                    <strong>{Math.round(evalResult.summary.maeXpDelta)}</strong>
+                  </div>
+                  <div className="historyRow">
+                    <span>XP RMSE</span>
+                    <strong>{Math.round(evalResult.summary.rmseXpDelta)}</strong>
+                  </div>
+                  <div className="historyRow">
+                    <span>WinRate CI Coverage</span>
+                    <strong>{pct(evalResult.summary.winRateCoverage)}</strong>
+                  </div>
+                  <div className="historyRow">
+                    <span>XP CI Coverage</span>
+                    <strong>{pct(evalResult.summary.xpDeltaCoverage)}</strong>
+                  </div>
+                  <div className="historyRow">
+                    <span>Recommendation Precision</span>
+                    <strong>{pct(evalResult.summary.recommendationPrecision)}</strong>
+                  </div>
                 </div>
               </div>
 
-              <div className="historyTableWrapper" style={{ marginTop: 12 }}>
+              <div className="historyTableWrapper adminTableOnly" style={{ marginTop: 12 }}>
                 <table className="historyTable">
                   <thead>
                     <tr>
-                      <th>Played At</th>
-                      <th>Rule</th>
-                      <th>Weapon</th>
-                      <th>Pred WinRate</th>
-                      <th>Actual WinRate</th>
-                      <th>WinRate 95%CI</th>
-                      <th>Pred XP d</th>
-                      <th>Actual XP d</th>
-                      <th>XP 95%CI</th>
-                      <th>Rec</th>
-                      <th>Comment</th>
+                      <th>日時</th>
+                      <th>ルール</th>
+                      <th>武器</th>
+                      <th>予測勝率</th>
+                      <th>実績勝率</th>
+                      <th>勝率95%CI</th>
+                      <th>予測XP増減</th>
+                      <th>実績XP増減</th>
+                      <th>XP95%CI</th>
+                      <th>推奨</th>
+                      <th>コメント</th>
                     </tr>
                   </thead>
                   <tbody>
                     {evalResult.rows.map((row) => (
                       <tr key={row.sessionId}>
-                        <td>{new Date(row.playedAt).toLocaleString("ja-JP")}</td>
+                        <td>{formatDateTime(row.playedAt)}</td>
                         <td>{row.rule}</td>
                         <td>{row.weapon}</td>
                         <td>{pct(row.predictedWinRate)}</td>
@@ -388,14 +411,13 @@ export default function AdminView({ currentUserId, onNavigateToMatches }: AdminV
                         <td>
                           {signed(row.xpDeltaInterval.low)} - {signed(row.xpDeltaInterval.high)}
                         </td>
-                        <td>{row.recommendPlay ? "Play" : "Skip"}</td>
+                        <td>{row.recommendPlay ? "推奨" : "非推奨"}</td>
                         <td title={row.note}>{row.advice}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-
               <div className="adminEvalRows adminMobileOnly" style={{ marginTop: 12 }}>
                 {evalResult.rows.map((row) => (
                   <details key={`eval-row-${row.sessionId}`} className="historyCard">
@@ -405,14 +427,42 @@ export default function AdminView({ currentUserId, onNavigateToMatches }: AdminV
                       <span className="historyWinRate">{pct(row.actualWinRate)}</span>
                     </summary>
                     <div className="historyCardDetails">
-                      <div className="historyRow"><span>Rule</span><strong>{row.rule}</strong></div>
-                      <div className="historyRow"><span>Pred WinRate</span><strong>{pct(row.predictedWinRate)}</strong></div>
-                      <div className="historyRow"><span>Actual WinRate</span><strong>{pct(row.actualWinRate)}</strong></div>
-                      <div className="historyRow"><span>WinRate 95%CI</span><strong>{pct(row.winRateInterval.low)} - {pct(row.winRateInterval.high)}</strong></div>
-                      <div className="historyRow"><span>Pred XP d</span><strong>{signed(row.predictedXpDelta)}</strong></div>
-                      <div className="historyRow"><span>Actual XP d</span><strong>{signed(row.actualXpDelta)}</strong></div>
-                      <div className="historyRow"><span>XP 95%CI</span><strong>{signed(row.xpDeltaInterval.low)} - {signed(row.xpDeltaInterval.high)}</strong></div>
-                      <div className="historyRow"><span>Rec</span><strong>{row.recommendPlay ? "Play" : "Skip"}</strong></div>
+                      <div className="historyRow">
+                        <span>Rule</span>
+                        <strong>{row.rule}</strong>
+                      </div>
+                      <div className="historyRow">
+                        <span>Pred WinRate</span>
+                        <strong>{pct(row.predictedWinRate)}</strong>
+                      </div>
+                      <div className="historyRow">
+                        <span>Actual WinRate</span>
+                        <strong>{pct(row.actualWinRate)}</strong>
+                      </div>
+                      <div className="historyRow">
+                        <span>WinRate 95%CI</span>
+                        <strong>
+                          {pct(row.winRateInterval.low)} - {pct(row.winRateInterval.high)}
+                        </strong>
+                      </div>
+                      <div className="historyRow">
+                        <span>Pred XP Delta</span>
+                        <strong>{signed(row.predictedXpDelta)}</strong>
+                      </div>
+                      <div className="historyRow">
+                        <span>Actual XP Delta</span>
+                        <strong>{signed(row.actualXpDelta)}</strong>
+                      </div>
+                      <div className="historyRow">
+                        <span>XP 95%CI</span>
+                        <strong>
+                          {signed(row.xpDeltaInterval.low)} - {signed(row.xpDeltaInterval.high)}
+                        </strong>
+                      </div>
+                      <div className="historyRow">
+                        <span>Recommendation</span>
+                        <strong>{row.recommendPlay ? "Play" : "Skip"}</strong>
+                      </div>
                       <div className="historyMemoCard">{row.advice}</div>
                     </div>
                   </details>
