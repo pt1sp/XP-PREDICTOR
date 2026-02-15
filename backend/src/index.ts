@@ -85,6 +85,26 @@ type SessionRow = {
   createdAt: string;
 };
 
+type MatchRow = {
+  id: number;
+  externalId: string;
+  playedAt: string;
+  mode: string;
+  rule: string;
+  stage: string;
+  weapon: string;
+  result: string;
+  importedAt: string;
+  user?: {
+    id: number;
+    loginId: string;
+  } | null;
+};
+
+type MatchDetailRow = MatchRow & {
+  rawJson: string;
+};
+
 function toSafeUser(user: DbUser): SafeUser {
   return {
     id: user.id,
@@ -121,6 +141,13 @@ function parseBearerToken(req: Request): string | null {
   const match = header.match(/^Bearer\s+(.+)$/i);
   if (!match) return null;
   return match[1].trim();
+}
+
+function parseCollectorToken(req: Request): string | null {
+  const header = req.header("x-collector-token");
+  if (!header) return null;
+  const token = header.trim();
+  return token ? token : null;
 }
 
 function hashPassword(password: string): string {
@@ -171,6 +198,26 @@ function getUserByToken(token: string): DbUser | null {
   if (row) return row;
 
   db.prepare(`DELETE FROM auth_tokens WHERE token = ? OR expires_at <= ?`).run(tokenHash, nowIso);
+  return null;
+}
+
+function getUserByCollectorToken(token: string): DbUser | null {
+  const tokenHash = hashToken(token);
+  const row = db
+    .prepare(
+      `SELECT u.*
+       FROM collector_tokens ct
+       JOIN users u ON u.id = ct.user_id
+       WHERE ct.token = ? AND ct.revoked_at IS NULL`
+    )
+    .get(tokenHash) as DbUser | undefined;
+
+  if (row) {
+    db.prepare(`UPDATE collector_tokens SET last_used_at = CURRENT_TIMESTAMP WHERE token = ?`).run(
+      tokenHash
+    );
+    return row;
+  }
   return null;
 }
 
@@ -230,6 +277,19 @@ function requireAuth(req: Request, res: Response): DbUser | null {
   }
 
   return user;
+}
+
+function requireCollectorOrAuth(req: Request, res: Response): DbUser | null {
+  const collectorToken = parseCollectorToken(req);
+  if (collectorToken) {
+    const user = getUserByCollectorToken(collectorToken);
+    if (!user) {
+      res.status(401).json({ error: "Invalid collector token" });
+      return null;
+    }
+    return user;
+  }
+  return requireAuth(req, res);
 }
 
 function requireAdmin(req: Request, res: Response): DbUser | null {
@@ -553,6 +613,253 @@ app.get("/api/admin/sessions", (req, res) => {
         : null,
     }))
   );
+});
+
+function parsePositiveIntQuery(value: unknown): number | null {
+  if (typeof value !== "string") return null;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 0) return null;
+  return parsed;
+}
+
+app.get("/api/admin/matches", (req, res) => {
+  const admin = requireAdmin(req, res);
+  if (!admin) return;
+
+  const limitRaw = parsePositiveIntQuery(req.query.limit);
+  const offsetRaw = parsePositiveIntQuery(req.query.offset);
+  const limit = Math.max(1, Math.min(500, limitRaw ?? 50));
+  const offset = Math.max(0, offsetRaw ?? 0);
+
+  const totalRow = db.prepare(`SELECT COUNT(*) as count FROM matches`).get() as
+    | { count: number }
+    | undefined;
+  const total = Number(totalRow?.count ?? 0);
+
+  const rows = db
+    .prepare(
+      `SELECT
+        m.id,
+        external_id as externalId,
+        played_at as playedAt,
+        mode,
+        rule,
+        stage,
+        weapon,
+        result,
+        imported_at as importedAt,
+        u.id as user_id,
+        u.login_id as user_login_id
+       FROM matches m
+       LEFT JOIN users u ON u.id = m.user_id
+       ORDER BY m.played_at DESC, m.id DESC
+       LIMIT ? OFFSET ?`
+    )
+    .all(limit, offset) as Array<
+    Omit<MatchRow, "user"> & { user_id: number | null; user_login_id: string | null }
+  >;
+
+  res.json({
+    total,
+    limit,
+    offset,
+    rows: rows.map((r) => ({
+      id: r.id,
+      externalId: r.externalId,
+      playedAt: r.playedAt,
+      mode: r.mode,
+      rule: r.rule,
+      stage: r.stage,
+      weapon: r.weapon,
+      result: r.result,
+      importedAt: r.importedAt,
+      user: r.user_id ? { id: r.user_id, loginId: r.user_login_id ?? "-" } : null,
+    })),
+  });
+});
+
+app.get("/api/admin/matches/:id", (req, res) => {
+  const admin = requireAdmin(req, res);
+  if (!admin) return;
+
+  const matchId = Number(req.params.id);
+  if (!Number.isInteger(matchId) || matchId <= 0) {
+    return res.status(400).json({ error: "Invalid match id" });
+  }
+
+  const row = db
+    .prepare(
+      `SELECT
+        m.id,
+        external_id as externalId,
+        played_at as playedAt,
+        mode,
+        rule,
+        stage,
+        weapon,
+        result,
+        imported_at as importedAt,
+        raw_json as rawJson,
+        u.id as user_id,
+        u.login_id as user_login_id
+       FROM matches m
+       LEFT JOIN users u ON u.id = m.user_id
+       WHERE m.id = ?`
+    )
+    .get(matchId) as (MatchDetailRow & { user_id: number | null; user_login_id: string | null }) | undefined;
+
+  if (!row) {
+    return res.status(404).json({ error: "Match not found" });
+  }
+
+  res.json({
+    id: row.id,
+    externalId: row.externalId,
+    playedAt: row.playedAt,
+    mode: row.mode,
+    rule: row.rule,
+    stage: row.stage,
+    weapon: row.weapon,
+    result: row.result,
+    importedAt: row.importedAt,
+    rawJson: row.rawJson,
+    user: row.user_id ? { id: row.user_id, loginId: row.user_login_id ?? "-" } : null,
+  });
+});
+
+function extractMatchSummary(payload: unknown): {
+  externalId: string;
+  playedAt: string;
+  mode: string;
+  rule: string;
+  stage: string;
+  weapon: string;
+  result: string;
+} | null {
+  const root =
+    (payload as any)?.vsHistoryDetail ??
+    (payload as any)?.data?.vsHistoryDetail ??
+    payload;
+  if (!root || typeof root !== "object") return null;
+
+  const externalId = String((root as any).id ?? "").trim();
+  if (!externalId) return null;
+
+  const playedAt = String((root as any).playedTime ?? (root as any).playedAt ?? "").trim();
+  if (!playedAt) return null;
+
+  const mode = String((root as any)?.vsMode?.mode ?? (root as any)?.vsMode?.name ?? "").trim();
+  const rule = String((root as any)?.vsRule?.name ?? "").trim();
+  const stage = String((root as any)?.vsStage?.name ?? "").trim();
+
+  const judgement = String((root as any)?.judgement ?? "").trim();
+  const result = judgement ? judgement.toUpperCase() : "";
+
+  const myTeamPlayers = Array.isArray((root as any)?.myTeam?.players) ? (root as any).myTeam.players : [];
+  const me = myTeamPlayers.find((p: any) => p?.isMyself);
+  const weapon = String(me?.weapon?.name ?? (root as any)?.player?.weapon?.name ?? "").trim();
+
+  return { externalId, playedAt, mode, rule, stage, weapon, result };
+}
+
+app.post("/api/ingest/matches", (req, res) => {
+  const user = requireCollectorOrAuth(req, res);
+  if (!user) return;
+
+  const items = req.body?.matches;
+  if (!Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ error: "matches (array) is required" });
+  }
+  if (items.length > 250) {
+    return res.status(400).json({ error: "matches length must be <= 250" });
+  }
+
+  const selectStmt = db.prepare(`SELECT 1 FROM matches WHERE external_id = ?`);
+  const insertStmt = db.prepare(`
+    INSERT INTO matches (user_id, external_id, played_at, mode, rule, stage, weapon, result, raw_json)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  let inserted = 0;
+  let skipped = 0;
+  let invalid = 0;
+
+  for (const item of items) {
+    try {
+      const rawJsonText =
+        typeof item === "string" ? item : JSON.stringify(item);
+      const parsed = extractMatchSummary(JSON.parse(rawJsonText));
+      if (!parsed) {
+        invalid += 1;
+        continue;
+      }
+      const exists = selectStmt.get(parsed.externalId);
+      if (exists) {
+        skipped += 1;
+        continue;
+      }
+      insertStmt.run(
+        user.id,
+        parsed.externalId,
+        parsed.playedAt,
+        parsed.mode,
+        parsed.rule,
+        parsed.stage,
+        parsed.weapon,
+        parsed.result,
+        rawJsonText
+      );
+      inserted += 1;
+    } catch {
+      invalid += 1;
+    }
+  }
+
+  res.json({ ok: true, inserted, skipped, invalid });
+});
+
+app.post("/api/admin/collector-tokens", (req, res) => {
+  const admin = requireAdmin(req, res);
+  if (!admin) return;
+
+  const userId = Number(req.body?.userId);
+  const label = String(req.body?.label ?? "").slice(0, 100);
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return res.status(400).json({ error: "userId is required" });
+  }
+
+  const target = db.prepare(`SELECT id FROM users WHERE id = ?`).get(userId) as { id: number } | undefined;
+  if (!target) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  const token = crypto.randomBytes(32).toString("hex");
+  const tokenHash = hashToken(token);
+  db.prepare(`INSERT INTO collector_tokens (token, user_id, label) VALUES (?, ?, ?)`).run(
+    tokenHash,
+    userId,
+    label
+  );
+
+  res.json({ token });
+});
+
+app.post("/api/collector-tokens", (req, res) => {
+  const user = requireAuth(req, res);
+  if (!user) return;
+
+  const label = String(req.body?.label ?? "").slice(0, 100);
+  const token = crypto.randomBytes(32).toString("hex");
+  const tokenHash = hashToken(token);
+
+  db.prepare(`INSERT INTO collector_tokens (token, user_id, label) VALUES (?, ?, ?)`).run(
+    tokenHash,
+    user.id,
+    label
+  );
+
+  // Return only once; caller should store securely.
+  res.json({ token });
 });
 
 app.delete("/api/admin/sessions/:id", (req, res) => {

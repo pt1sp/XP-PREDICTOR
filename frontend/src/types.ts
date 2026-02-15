@@ -1,1 +1,1 @@
-export type ViewType = "predict" | "record" | "history" | "admin";
+export type ViewType = "predict" | "record" | "history" | "admin" | "matches" | "settings";

@@ -148,6 +148,31 @@ export function initDatabase() {
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS matches (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
+      external_id TEXT NOT NULL UNIQUE,
+      played_at TEXT NOT NULL,
+      mode TEXT NOT NULL DEFAULT '',
+      rule TEXT NOT NULL DEFAULT '',
+      stage TEXT NOT NULL DEFAULT '',
+      weapon TEXT NOT NULL DEFAULT '',
+      result TEXT NOT NULL DEFAULT '',
+      raw_json TEXT NOT NULL,
+      imported_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS collector_tokens (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      token TEXT NOT NULL UNIQUE,
+      user_id INTEGER NOT NULL,
+      label TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      last_used_at TEXT,
+      revoked_at TEXT,
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
   `);
 
   normalizeUsersTable();
@@ -167,5 +192,30 @@ export function initDatabase() {
   }
   if (!hasColumn("Session", "rule")) {
     db.exec(`ALTER TABLE "Session" ADD COLUMN "rule" TEXT NOT NULL DEFAULT '';`);
+  }
+  if (!hasColumn("matches", "mode")) {
+    db.exec(`ALTER TABLE matches ADD COLUMN mode TEXT NOT NULL DEFAULT '';`);
+  }
+  if (!hasColumn("matches", "imported_at")) {
+    db.exec(`ALTER TABLE matches ADD COLUMN imported_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP;`);
+  }
+  if (!hasColumn("matches", "user_id")) {
+    db.exec(`ALTER TABLE matches ADD COLUMN user_id INTEGER;`);
+  }
+
+  if (!hasIndex("Session_userId_playedAt_idx")) {
+    db.exec(`CREATE INDEX "Session_userId_playedAt_idx" ON "Session"("userId", "playedAt" DESC);`);
+  }
+  if (!hasIndex("Session_playedAt_id_idx")) {
+    db.exec(`CREATE INDEX "Session_playedAt_id_idx" ON "Session"("playedAt" ASC, "id" ASC);`);
+  }
+  if (!hasIndex("auth_tokens_expires_at_idx")) {
+    db.exec(`CREATE INDEX "auth_tokens_expires_at_idx" ON auth_tokens(expires_at);`);
+  }
+  if (!hasIndex("matches_played_at_idx")) {
+    db.exec(`CREATE INDEX "matches_played_at_idx" ON matches(played_at DESC);`);
+  }
+  if (!hasIndex("collector_tokens_user_id_idx")) {
+    db.exec(`CREATE INDEX "collector_tokens_user_id_idx" ON collector_tokens(user_id);`);
   }
 }

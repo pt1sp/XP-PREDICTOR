@@ -135,6 +135,30 @@ export type OfflineEvaluationResult = {
   rows: OfflineEvaluationRow[];
 };
 
+export type AdminMatch = {
+  id: number;
+  externalId: string;
+  playedAt: string;
+  mode: string;
+  rule: string;
+  stage: string;
+  weapon: string;
+  result: string;
+  importedAt: string;
+  user?: { id: number; loginId: string } | null;
+};
+
+export type AdminMatchesResponse = {
+  total: number;
+  limit: number;
+  offset: number;
+  rows: AdminMatch[];
+};
+
+export type AdminMatchDetail = AdminMatch & {
+  rawJson: string;
+};
+
 export function setAuthToken(token: string) {
   const normalized = token.trim();
   authToken = normalized || null;
@@ -275,6 +299,40 @@ export async function fetchOfflineEvaluation(input: {
     limit: String(input.limit ?? 120),
   });
   return requestJson<OfflineEvaluationResult>(`/api/admin/evaluation/offline?${params.toString()}`);
+}
+
+export async function fetchAdminMatches(input?: {
+  limit?: number;
+  offset?: number;
+}): Promise<AdminMatchesResponse> {
+  const params = new URLSearchParams();
+  if (typeof input?.limit === "number") params.set("limit", String(input.limit));
+  if (typeof input?.offset === "number") params.set("offset", String(input.offset));
+  const suffix = params.toString() ? `?${params.toString()}` : "";
+  return requestJson<AdminMatchesResponse>(`/api/admin/matches${suffix}`);
+}
+
+export async function fetchAdminMatch(matchId: number): Promise<AdminMatchDetail> {
+  return requestJson<AdminMatchDetail>(`/api/admin/matches/${matchId}`);
+}
+
+export async function createCollectorToken(input: {
+  userId: number;
+  label?: string;
+}): Promise<{ token: string }> {
+  return requestJson<{ token: string }>(`/api/admin/collector-tokens`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export async function createMyCollectorToken(input?: { label?: string }): Promise<{ token: string }> {
+  return requestJson<{ token: string }>(`/api/collector-tokens`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ label: input?.label ?? "" }),
+  });
 }
 
 

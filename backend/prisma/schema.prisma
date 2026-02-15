@@ -23,3 +23,20 @@ model Session {
   memo         String?
   createdAt    DateTime @default(now())
 }
+
+model Match {
+  id         Int      @id @default(autoincrement())
+  externalId String   @unique @map("external_id")
+  playedAt   DateTime @map("played_at")
+  mode       String
+  rule       String
+  stage      String
+  weapon     String
+  result     String
+  rawJson    String   @map("raw_json")
+  importedAt DateTime @default(now()) @map("imported_at")
+  userId     Int?     @map("user_id")
+
+  @@index([playedAt(sort: Desc)], map: "matches_played_at_idx")
+  @@map("matches")
+}

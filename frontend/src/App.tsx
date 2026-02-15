@@ -18,6 +18,13 @@ import AuthView from "./AuthView";
 import AdminView from "./AdminView";
 import type { ViewType } from "./types";
 
+const PredictView = lazy(() => import("./PredictView"));
+const RecordView = lazy(() => import("./RecordView"));
+const HistoryView = lazy(() => import("./HistoryView"));
+const AdminView = lazy(() => import("./AdminView"));
+const MatchesView = lazy(() => import("./MatchesView"));
+const SettingsView = lazy(() => import("./SettingsView"));
+
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewType>("predict");
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -63,7 +70,7 @@ export default function App() {
   }, [reload]);
 
   useEffect(() => {
-    if (!isAdmin && currentView === "admin") {
+    if (!isAdmin && (currentView === "admin" || currentView === "matches")) {
       setCurrentView("predict");
     }
   }, [currentView, isAdmin]);
@@ -150,13 +157,23 @@ export default function App() {
 
       <main className="mainContent">
         {msg && <div className="messageBox error">{msg}</div>}
-
-        {currentView === "predict" && <PredictView />}
-        {currentView === "record" && <RecordView onRecordSaved={handleRecordSaved} />}
-        {currentView === "history" && (
-          <HistoryView sessions={sessions} onDeleteSession={handleDeleteSession} />
-        )}
-        {currentView === "admin" && isAdmin && <AdminView currentUserId={user.id} />}
+        <Suspense fallback={<div className="emptyState"><p>読み込み中...</p></div>}>
+          {currentView === "predict" && <PredictView />}
+          {currentView === "record" && <RecordView onRecordSaved={handleRecordSaved} />}
+          {currentView === "history" && (
+            <HistoryView sessions={sessions} onDeleteSession={handleDeleteSession} />
+          )}
+          {currentView === "admin" && isAdmin && (
+            <AdminView
+              currentUserId={user.id}
+              onNavigateToMatches={() => setCurrentView("matches")}
+            />
+          )}
+          {currentView === "matches" && isAdmin && (
+            <MatchesView onBack={() => setCurrentView("admin")} />
+          )}
+          {currentView === "settings" && <SettingsView />}
+        </Suspense>
       </main>
     </div>
   );
