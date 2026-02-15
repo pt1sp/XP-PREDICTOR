@@ -18,6 +18,8 @@ const PredictView = lazy(() => import("./PredictView"));
 const RecordView = lazy(() => import("./RecordView"));
 const HistoryView = lazy(() => import("./HistoryView"));
 const AdminView = lazy(() => import("./AdminView"));
+const MatchesView = lazy(() => import("./MatchesView"));
+const SettingsView = lazy(() => import("./SettingsView"));
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewType>("predict");
@@ -64,7 +66,7 @@ export default function App() {
   }, [reload]);
 
   useEffect(() => {
-    if (!isAdmin && currentView === "admin") {
+    if (!isAdmin && (currentView === "admin" || currentView === "matches")) {
       setCurrentView("predict");
     }
   }, [currentView, isAdmin]);
@@ -157,7 +159,16 @@ export default function App() {
           {currentView === "history" && (
             <HistoryView sessions={sessions} onDeleteSession={handleDeleteSession} />
           )}
-          {currentView === "admin" && isAdmin && <AdminView currentUserId={user.id} />}
+          {currentView === "admin" && isAdmin && (
+            <AdminView
+              currentUserId={user.id}
+              onNavigateToMatches={() => setCurrentView("matches")}
+            />
+          )}
+          {currentView === "matches" && isAdmin && (
+            <MatchesView onBack={() => setCurrentView("admin")} />
+          )}
+          {currentView === "settings" && <SettingsView />}
         </Suspense>
       </main>
     </div>
