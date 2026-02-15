@@ -1,0 +1,10 @@
+.adminPageContainer .historyRow span {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.adminPageContainer .historyRow strong {
+  color: var(--color-text-primary);
+  font-weight: 800;
+}
+

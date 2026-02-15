@@ -3245,7 +3245,6 @@ body {
 
 .adminSessionList,
 .adminEvalRows {
-  display: grid;
   gap: var(--space-sm);
 }
 

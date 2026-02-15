@@ -9,22 +9,25 @@ import {
   type OfflineEvaluationResult,
   type SessionWithUser,
 } from "./api";
+import "./AdminView.css";
 
 type AdminViewProps = {
   currentUserId: number;
+  onNavigateToMatches: () => void;
 };
 
-export default function AdminView({ currentUserId }: AdminViewProps) {
+export default function AdminView({ currentUserId, onNavigateToMatches }: AdminViewProps) {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [sessions, setSessions] = useState<SessionWithUser[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<number | "">("");
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(true);
+  const [deletingSessionId, setDeletingSessionId] = useState<number | null>(null);
+
   const [evalResult, setEvalResult] = useState<OfflineEvaluationResult | null>(null);
   const [evalLoading, setEvalLoading] = useState(false);
   const [warmup, setWarmup] = useState(6);
   const [evalLimit, setEvalLimit] = useState(120);
-  const [deletingSessionId, setDeletingSessionId] = useState<number | null>(null);
 
   async function reload(targetUserId?: number) {
     setLoading(true);
@@ -37,7 +40,7 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
       setSessions(nextSessions);
       setMsg("");
     } catch (err) {
-      setMsg(`管理データ取得に失敗: ${String(err)}`);
+      setMsg(`Failed to load admin data: ${String(err)}`);
     } finally {
       setLoading(false);
     }
@@ -57,15 +60,32 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
       await updateUserRole(userId, role);
       await reload(selectedUserId === "" ? undefined : selectedUserId);
     } catch (err) {
-      setMsg(`権限更新に失敗: ${String(err)}`);
+      setMsg(`Failed to change role: ${String(err)}`);
+    }
+  }
+
+  async function handleDeleteSession(sessionId: number) {
+    if (deletingSessionId !== null) return;
+    const ok = window.confirm("Delete this session?");
+    if (!ok) return;
+
+    setDeletingSessionId(sessionId);
+    try {
+      await deleteAdminSession(sessionId);
+      await reload(selectedUserId === "" ? undefined : selectedUserId);
+    } catch (err) {
+      setMsg(`Failed to delete session: ${String(err)}`);
+    } finally {
+      setDeletingSessionId(null);
     }
   }
 
   async function runOfflineEvaluation() {
     if (selectedUserId === "") {
-      setMsg("オフライン評価は対象ユーザーを選択して実行してください");
+      setMsg("Select a target user first.");
       return;
     }
+
     setEvalLoading(true);
     try {
       const result = await fetchOfflineEvaluation({
@@ -76,26 +96,10 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
       setEvalResult(result);
       setMsg("");
     } catch (err) {
-      setMsg(`オフライン評価に失敗: ${String(err)}`);
+      setMsg(`Offline evaluation failed: ${String(err)}`);
       setEvalResult(null);
     } finally {
       setEvalLoading(false);
-    }
-  }
-
-  async function handleDeleteSession(sessionId: number) {
-    if (deletingSessionId !== null) return;
-    const ok = window.confirm("この試合記録を削除しますか？");
-    if (!ok) return;
-
-    setDeletingSessionId(sessionId);
-    try {
-      await deleteAdminSession(sessionId);
-      await reload(selectedUserId === "" ? undefined : selectedUserId);
-    } catch (err) {
-      setMsg(`記録削除に失敗: ${String(err)}`);
-    } finally {
-      setDeletingSessionId(null);
     }
   }
 
@@ -104,19 +108,30 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
   const formatDateTime = (value: string) => new Date(value).toLocaleString("ja-JP");
 
   return (
-    <div className="viewContainer adminViewContainer">
+    <div className="viewContainer adminViewContainer adminPageContainer">
       <section className="historySection">
         <div className="sectionHeader">
-          <h2 className="sectionTitle">管理者ビュー</h2>
-          <div className="sectionSubtitle">ユーザー管理と全体履歴の確認</div>
+          <h2 className="sectionTitle">Admin</h2>
+          <div className="sectionSubtitle">Users, sessions, and offline evaluation</div>
         </div>
 
         {msg && <div className="messageBox error">{msg}</div>}
 
+        <div className="filterSection" style={{ marginTop: 10 }}>
+          <div className="filterControls">
+            <div className="filterGroup">
+              <label className="filterLabel">SplatNet3 Matches</label>
+              <button type="button" className="quickBtn" onClick={onNavigateToMatches}>
+                Open matches
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div className="filterSection">
           <div className="filterControls">
             <div className="filterGroup">
-              <label className="filterLabel">対象ユーザー</label>
+              <label className="filterLabel">Target user</label>
               <select
                 className="filterSelect"
                 value={selectedUserId}
@@ -127,7 +142,7 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
                   void reload(typeof nextId === "number" ? nextId : undefined);
                 }}
               >
-                <option value="">全ユーザー</option>
+                <option value="">All users</option>
                 {users.map((u) => (
                   <option key={u.id} value={u.id}>
                     {u.loginId}
@@ -140,14 +155,14 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
 
         <div className="adminGrid">
           <div className="adminCard">
-            <h3 className="filterTitle">ユーザー一覧</h3>
+            <h3 className="filterTitle">Users</h3>
             <div className="adminList">
               {users.map((u) => (
                 <div className="adminListItem" key={u.id}>
                   <div>
                     <strong>{u.loginId}</strong>
                     <small>
-                      ロール: {u.role} / 記録: {u._count.sessions}件
+                      Role: {u.role} / Sessions: {u._count.sessions}
                     </small>
                   </div>
                   <div className="adminActions">
@@ -178,88 +193,93 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
 
           <div className="adminCard">
             <h3 className="filterTitle">
-              履歴一覧 {targetUser ? `(${targetUser.loginId})` : "(全ユーザー)"}
+              Sessions {targetUser ? `(${targetUser.loginId})` : "(All users)"}
             </h3>
+
             {loading ? (
               <div className="emptyState">
-                <p>読み込み中...</p>
+                <p>Loading...</p>
               </div>
             ) : sessions.length === 0 ? (
               <div className="emptyState">
-                <p>表示データがありません</p>
+                <p>No sessions.</p>
               </div>
             ) : (
               <>
-              <div className="historyTableWrapper adminTableOnly">
-                <table className="historyTable">
-                  <thead>
-                    <tr>
-                      <th>日時</th>
-                      <th>ユーザー</th>
-                      <th>武器</th>
-                      <th>勝</th>
-                      <th>敗</th>
-                      <th>操作</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sessions.map((s) => (
-                      <tr key={s.id}>
-                        <td>{formatDateTime(s.playedAt)}</td>
-                        <td>{s.user?.loginId ?? "-"}</td>
-                        <td>{s.weapon}</td>
-                        <td className="historyWins">{s.wins}</td>
-                        <td className="historyLosses">{s.losses}</td>
-                        <td>
-                          <button
-                            className="quickBtn"
-                            type="button"
-                            disabled={deletingSessionId === s.id}
-                            onClick={() => void handleDeleteSession(s.id)}
-                          >
-                            {deletingSessionId === s.id ? "削除中..." : "削除"}
-                          </button>
-                        </td>
+                <div className="historyTableWrapper adminTableOnly">
+                  <table className="historyTable">
+                    <thead>
+                      <tr>
+                        <th>Played At</th>
+                        <th>User</th>
+                        <th>Weapon</th>
+                        <th>W</th>
+                        <th>L</th>
+                        <th>Action</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="adminSessionList adminMobileOnly">
-                {sessions.map((s) => (
-                  <details key={`admin-session-${s.id}`} className="historyCard">
-                    <summary className="historyCardSummary">
-                      <span className="historyDate">{formatDateTime(s.playedAt)}</span>
-                      <span className="historyWeapon">{s.weapon}</span>
-                      <span className="historyWinRate">{s.wins}W {s.losses}L</span>
-                    </summary>
-                    <div className="historyCardDetails">
-                      <div className="historyRow">
-                        <span>User</span>
-                        <strong>{s.user?.loginId ?? "-"}</strong>
+                    </thead>
+                    <tbody>
+                      {sessions.map((s) => (
+                        <tr key={s.id}>
+                          <td>{formatDateTime(s.playedAt)}</td>
+                          <td>{s.user?.loginId ?? "-"}</td>
+                          <td>{s.weapon}</td>
+                          <td className="historyWins">{s.wins}</td>
+                          <td className="historyLosses">{s.losses}</td>
+                          <td>
+                            <button
+                              className="quickBtn"
+                              type="button"
+                              disabled={deletingSessionId === s.id}
+                              onClick={() => void handleDeleteSession(s.id)}
+                            >
+                              {deletingSessionId === s.id ? "Deleting..." : "Delete"}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="adminSessionList adminMobileOnly">
+                  {sessions.map((s) => (
+                    <details key={`admin-session-${s.id}`} className="historyCard">
+                      <summary className="historyCardSummary">
+                        <span className="historyDate">{formatDateTime(s.playedAt)}</span>
+                        <span className="historyWeapon">{s.weapon}</span>
+                        <span className="historyWinRate">
+                          {s.wins}W {s.losses}L
+                        </span>
+                      </summary>
+                      <div className="historyCardDetails">
+                        <div className="historyRow">
+                          <span>User</span>
+                          <strong>{s.user?.loginId ?? "-"}</strong>
+                        </div>
+                        <button
+                          className="quickBtn historyDeleteBtn"
+                          type="button"
+                          disabled={deletingSessionId === s.id}
+                          onClick={() => void handleDeleteSession(s.id)}
+                        >
+                          {deletingSessionId === s.id ? "Deleting..." : "Delete"}
+                        </button>
                       </div>
-                      <button
-                        className="quickBtn historyDeleteBtn"
-                        type="button"
-                        disabled={deletingSessionId === s.id}
-                        onClick={() => void handleDeleteSession(s.id)}
-                      >
-                        {deletingSessionId === s.id ? "Deleting..." : "Delete"}
-                      </button>
-                    </div>
-                  </details>
-                ))}
-              </div>
+                    </details>
+                  ))}
+                </div>
               </>
             )}
           </div>
         </div>
 
         <div className="adminCard" style={{ marginTop: 20 }}>
-          <h3 className="filterTitle">オフライン評価（時系列バックテスト）</h3>
+          <h3 className="filterTitle">Offline evaluation</h3>
+
           <div className="filterControls">
             <div className="filterGroup">
-              <label className="filterLabel">ウォームアップ件数</label>
+              <label className="filterLabel">Warmup</label>
               <input
                 className="filterInput"
                 type="number"
@@ -270,22 +290,20 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
               />
             </div>
             <div className="filterGroup">
-              <label className="filterLabel">評価件数上限</label>
+              <label className="filterLabel">Limit</label>
               <input
                 className="filterInput"
                 type="number"
                 min={20}
                 max={500}
                 value={evalLimit}
-                onChange={(e) =>
-                  setEvalLimit(Math.max(20, Math.min(500, Number(e.target.value) || 120)))
-                }
+                onChange={(e) => setEvalLimit(Math.max(20, Math.min(500, Number(e.target.value) || 120)))}
               />
             </div>
             <div className="filterGroup">
-              <label className="filterLabel">実行</label>
+              <label className="filterLabel">Run</label>
               <button className="quickBtn" type="button" disabled={evalLoading} onClick={() => void runOfflineEvaluation()}>
-                {evalLoading ? "評価中..." : "オフライン評価を実行"}
+                {evalLoading ? "Running..." : "Run evaluation"}
               </button>
             </div>
           </div>
@@ -296,14 +314,14 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
                 <table className="historyTable">
                   <thead>
                     <tr>
-                      <th>評価件数</th>
-                      <th>勝率MAE</th>
-                      <th>勝率RMSE</th>
+                      <th>Evaluated</th>
+                      <th>WinRate MAE</th>
+                      <th>WinRate RMSE</th>
                       <th>XP MAE</th>
                       <th>XP RMSE</th>
-                      <th>勝率CI被覆率</th>
-                      <th>XP CI被覆率</th>
-                      <th>推奨精度</th>
+                      <th>WinRate CI cov</th>
+                      <th>XP CI cov</th>
+                      <th>Rec precision</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -320,6 +338,7 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
                   </tbody>
                 </table>
               </div>
+
               <div className="adminEvalSummary adminMobileOnly" style={{ marginTop: 12 }}>
                 <div className="historyCardDetails">
                   <div className="historyRow"><span>Evaluated</span><strong>{evalResult.evaluatedCount}</strong></div>
@@ -327,9 +346,9 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
                   <div className="historyRow"><span>WinRate RMSE</span><strong>{pct(evalResult.summary.rmseWinRate)}</strong></div>
                   <div className="historyRow"><span>XP MAE</span><strong>{Math.round(evalResult.summary.maeXpDelta)}</strong></div>
                   <div className="historyRow"><span>XP RMSE</span><strong>{Math.round(evalResult.summary.rmseXpDelta)}</strong></div>
-                  <div className="historyRow"><span>WinRate CI Coverage</span><strong>{pct(evalResult.summary.winRateCoverage)}</strong></div>
-                  <div className="historyRow"><span>XP CI Coverage</span><strong>{pct(evalResult.summary.xpDeltaCoverage)}</strong></div>
-                  <div className="historyRow"><span>Recommendation Precision</span><strong>{pct(evalResult.summary.recommendationPrecision)}</strong></div>
+                  <div className="historyRow"><span>WinRate CI cov</span><strong>{pct(evalResult.summary.winRateCoverage)}</strong></div>
+                  <div className="historyRow"><span>XP CI cov</span><strong>{pct(evalResult.summary.xpDeltaCoverage)}</strong></div>
+                  <div className="historyRow"><span>Rec precision</span><strong>{pct(evalResult.summary.recommendationPrecision)}</strong></div>
                 </div>
               </div>
 
@@ -337,17 +356,17 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
                 <table className="historyTable">
                   <thead>
                     <tr>
-                      <th>日時</th>
-                      <th>ルール</th>
-                      <th>武器</th>
-                      <th>予測勝率</th>
-                      <th>実績勝率</th>
-                      <th>勝率95%CI</th>
-                      <th>予測XP増減</th>
-                      <th>実績XP増減</th>
-                      <th>XP95%CI</th>
-                      <th>推奨</th>
-                      <th>コメント</th>
+                      <th>Played At</th>
+                      <th>Rule</th>
+                      <th>Weapon</th>
+                      <th>Pred WinRate</th>
+                      <th>Actual WinRate</th>
+                      <th>WinRate 95%CI</th>
+                      <th>Pred XP d</th>
+                      <th>Actual XP d</th>
+                      <th>XP 95%CI</th>
+                      <th>Rec</th>
+                      <th>Comment</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -366,13 +385,14 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
                         <td>
                           {signed(row.xpDeltaInterval.low)} - {signed(row.xpDeltaInterval.high)}
                         </td>
-                        <td>{row.recommendPlay ? "推奨" : "非推奨"}</td>
+                        <td>{row.recommendPlay ? "Play" : "Skip"}</td>
                         <td title={row.note}>{row.advice}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
+
               <div className="adminEvalRows adminMobileOnly" style={{ marginTop: 12 }}>
                 {evalResult.rows.map((row) => (
                   <details key={`eval-row-${row.sessionId}`} className="historyCard">
@@ -386,10 +406,10 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
                       <div className="historyRow"><span>Pred WinRate</span><strong>{pct(row.predictedWinRate)}</strong></div>
                       <div className="historyRow"><span>Actual WinRate</span><strong>{pct(row.actualWinRate)}</strong></div>
                       <div className="historyRow"><span>WinRate 95%CI</span><strong>{pct(row.winRateInterval.low)} - {pct(row.winRateInterval.high)}</strong></div>
-                      <div className="historyRow"><span>Pred XP Delta</span><strong>{signed(row.predictedXpDelta)}</strong></div>
-                      <div className="historyRow"><span>Actual XP Delta</span><strong>{signed(row.actualXpDelta)}</strong></div>
+                      <div className="historyRow"><span>Pred XP d</span><strong>{signed(row.predictedXpDelta)}</strong></div>
+                      <div className="historyRow"><span>Actual XP d</span><strong>{signed(row.actualXpDelta)}</strong></div>
                       <div className="historyRow"><span>XP 95%CI</span><strong>{signed(row.xpDeltaInterval.low)} - {signed(row.xpDeltaInterval.high)}</strong></div>
-                      <div className="historyRow"><span>Recommendation</span><strong>{row.recommendPlay ? "Play" : "Skip"}</strong></div>
+                      <div className="historyRow"><span>Rec</span><strong>{row.recommendPlay ? "Play" : "Skip"}</strong></div>
                       <div className="historyMemoCard">{row.advice}</div>
                     </div>
                   </details>
@@ -402,4 +422,3 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
     </div>
   );
 }
-
