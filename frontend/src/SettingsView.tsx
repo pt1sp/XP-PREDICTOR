@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { createMyCollectorToken } from "./api";
 
 export default function SettingsView() {
@@ -12,20 +12,21 @@ export default function SettingsView() {
       <section className="historySection">
         <div className="sectionHeader">
           <h2 className="sectionTitle">設定</h2>
-          <div className="sectionSubtitle">協力者アップロード用トークンなど</div>
+          <div className="sectionSubtitle">収集トークンの発行など</div>
         </div>
 
         {msg && <div className="messageBox error">{msg}</div>}
 
         <div className="adminCard">
-          <h3 className="filterTitle">協力者アップロード用トークン</h3>
+          <h3 className="filterTitle">SplatNet3 収集トークン</h3>
           <div className="sectionSubtitle" style={{ marginTop: 6 }}>
-            s3sで取得した `exports/results/*.json` を本番へ送るためのトークンです。Nintendoのログイン情報は送信しません。
+            収集スクリプトからバックエンドへ試合データを取り込むためのトークンです。
+            発行後は `XP_COLLECTOR_TOKEN` として安全に保管してください。
           </div>
 
           <div className="filterControls" style={{ marginTop: 12 }}>
             <div className="filterGroup">
-              <label className="filterLabel">ラベル（任意）</label>
+              <label className="filterLabel">ラベル (任意)</label>
               <input
                 className="filterInput"
                 placeholder="例: home-pc / laptop"
@@ -62,9 +63,15 @@ export default function SettingsView() {
           {token && (
             <div className="messageBox" style={{ marginTop: 12 }}>
               <div style={{ fontSize: 12, marginBottom: 6 }}>
-                これは一度だけ表示されます。PCの環境変数 `XP_COLLECTOR_TOKEN` に保存してください（漏洩注意）。
+                このトークンは一度しか表示されません。`XP_COLLECTOR_TOKEN` に設定してください。
               </div>
-              <div style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>
+              <div
+                style={{
+                  fontFamily:
+                    "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                  wordBreak: "break-all",
+                }}
+              >
                 {token}
               </div>
             </div>
@@ -74,4 +81,3 @@ export default function SettingsView() {
     </div>
   );
 }
-

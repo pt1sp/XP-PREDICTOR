@@ -1,5 +1,4 @@
-﻿import { useState, useMemo, useEffect } from "react";
-import { createPortal } from "react-dom";
+import { useState, useMemo } from "react";
 import { createSession } from "./api";
 import type { Rule, SessionInput } from "./api";
 import {
@@ -840,15 +839,62 @@ export default function RecordView({ onRecordSaved }: RecordViewProps) {
                   </button>
                 </div>
 
-                {pickerOpen === "weapon" && (
-                  <div className="categoryTabs">
-                    {WEAPON_CATEGORIES.map((c) => (
+              {pickerOpen === "weapon" && (
+                <div className="categoryTabs">
+                  {WEAPON_CATEGORIES.map((c) => (
+                    <button
+                      key={c.key}
+                      type="button"
+                      className={`categoryTab ${c.key === weaponCat ? "active" : ""
+                        }`}
+                      onClick={() => setWeaponCat(c.key)}
+                    >
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div className="pickerGrid">
+                {(pickerOpen === "weapon" ? weaponCandidates : stageCandidates).map(
+                  (name) => {
+                    const current =
+                      pickerOpen === "weapon"
+                        ? form.weapon
+                        : pickerOpen === "stage1"
+                          ? form.stage1
+                          : form.stage2;
+
+                    const stageDuplicate =
+                      (pickerOpen === "stage1" && name === form.stage2) ||
+                      (pickerOpen === "stage2" && name === form.stage1);
+
+                    const active = name === current;
+
+                    return (
                       <button
                         key={c.key}
                         type="button"
-                        className={`categoryTab ${c.key === weaponCat ? "active" : ""
-                          }`}
-                        onClick={() => setWeaponCat(c.key)}
+                        className={`pickerItem ${active ? "active" : ""}`}
+                        disabled={stageDuplicate}
+                        style={{
+                          backgroundImage:
+                            pickerOpen === "weapon"
+                              ? `url(${getWeaponImagePath(name)})`
+                              : `url(${getStageImagePath(name)})`,
+                          opacity: stageDuplicate ? 0.45 : undefined,
+                          cursor: stageDuplicate ? "not-allowed" : undefined,
+                        }}
+                        onClick={() => {
+                          if (stageDuplicate) return;
+                          if (pickerOpen === "weapon")
+                            updateForm("weapon", name);
+                          if (pickerOpen === "stage1")
+                            updateForm("stage1", name);
+                          if (pickerOpen === "stage2")
+                            updateForm("stage2", name);
+                          setPickerOpen(null);
+                        }}
                       >
                         {c.label}
                       </button>

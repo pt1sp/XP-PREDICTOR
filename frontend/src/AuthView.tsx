@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { login, register, setAuthToken, type AuthUser } from "./api";
 
 type AuthViewProps = {

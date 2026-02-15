@@ -159,6 +159,29 @@ export type AdminMatchDetail = AdminMatch & {
   rawJson: string;
 };
 
+export type Match = {
+  id: number;
+  externalId: string;
+  playedAt: string;
+  mode: string;
+  rule: string;
+  stage: string;
+  weapon: string;
+  result: string;
+  importedAt: string;
+};
+
+export type MatchesResponse = {
+  total: number;
+  limit: number;
+  offset: number;
+  rows: Match[];
+};
+
+export type MatchDetail = Match & {
+  rawJson: string;
+};
+
 export function setAuthToken(token: string) {
   const normalized = token.trim();
   authToken = normalized || null;
@@ -316,6 +339,21 @@ export async function fetchAdminMatch(matchId: number): Promise<AdminMatchDetail
   return requestJson<AdminMatchDetail>(`/api/admin/matches/${matchId}`);
 }
 
+export async function fetchMatches(input?: {
+  limit?: number;
+  offset?: number;
+}): Promise<MatchesResponse> {
+  const params = new URLSearchParams();
+  if (typeof input?.limit === "number") params.set("limit", String(input.limit));
+  if (typeof input?.offset === "number") params.set("offset", String(input.offset));
+  const suffix = params.toString() ? `?${params.toString()}` : "";
+  return requestJson<MatchesResponse>(`/api/matches${suffix}`);
+}
+
+export async function fetchMatch(matchId: number): Promise<MatchDetail> {
+  return requestJson<MatchDetail>(`/api/matches/${matchId}`);
+}
+
 export async function createCollectorToken(input: {
   userId: number;
   label?: string;
@@ -334,6 +372,5 @@ export async function createMyCollectorToken(input?: { label?: string }): Promis
     body: JSON.stringify({ label: input?.label ?? "" }),
   });
 }
-
 
 

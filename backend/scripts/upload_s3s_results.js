@@ -50,11 +50,13 @@ function saveState(statePath, state) {
 async function main() {
   const apiBaseUrl = String(process.env.XP_API_BASE_URL || "").trim();
   const collectorToken = String(process.env.XP_COLLECTOR_TOKEN || "").trim();
+  const authToken = String(process.env.XP_AUTH_TOKEN || "").trim();
+  const userLoginId = String(process.env.XP_USER_LOGIN_ID || "").trim();
   if (!apiBaseUrl) {
     throw new Error("XP_API_BASE_URL is required (e.g. https://your-app.example.com)");
   }
-  if (!collectorToken) {
-    throw new Error("XP_COLLECTOR_TOKEN is required (issued from admin screen)");
+  if (!collectorToken && !authToken) {
+    throw new Error("XP_COLLECTOR_TOKEN or XP_AUTH_TOKEN is required");
   }
 
   const resultsDir = resolveResultsDir();
@@ -93,16 +95,22 @@ async function main() {
 
   for (let i = 0; i < pending.length; i += chunkSize) {
     const chunk = pending.slice(i, i + chunkSize);
-    const body = JSON.stringify({
-      matches: chunk.map((c) => c.raw),
-    });
+    const payload = { matches: chunk.map((c) => c.raw) };
+    if (userLoginId) payload.userLoginId = userLoginId;
+    const body = JSON.stringify(payload);
+
+    const headers = {
+      "Content-Type": "application/json",
+    };
+    if (authToken) {
+      headers["Authorization"] = `Bearer ${authToken}`;
+    } else {
+      headers["X-Collector-Token"] = collectorToken;
+    }
 
     const resp = await fetch(`${apiBaseUrl.replace(/\/$/, "")}/api/ingest/matches`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Collector-Token": collectorToken,
-      },
+      headers,
       body,
     });
 
@@ -132,4 +140,3 @@ main().catch((err) => {
   console.error(err instanceof Error ? err.message : String(err));
   process.exitCode = 1;
 });
-
