@@ -75,21 +75,6 @@ export default function Navigation({
           <span>管理</span>
         </button>
       )}
-
-      {isAdmin && (
-        <button
-          type="button"
-          className={`navBtn ${currentView === "matches" ? "active" : ""}`}
-          onClick={() => onViewChange("matches")}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M3 6h18" />
-            <path d="M3 12h18" />
-            <path d="M3 18h18" />
-          </svg>
-          <span>Matches</span>
-        </button>
-      )}
     </nav>
   );
 }

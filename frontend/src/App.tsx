@@ -18,7 +18,6 @@ const PredictView = lazy(() => import("./PredictView"));
 const RecordView = lazy(() => import("./RecordView"));
 const HistoryView = lazy(() => import("./HistoryView"));
 const AdminView = lazy(() => import("./AdminView"));
-const MatchesView = lazy(() => import("./MatchesView"));
 const SettingsView = lazy(() => import("./SettingsView"));
 
 export default function App() {
@@ -66,7 +65,7 @@ export default function App() {
   }, [reload]);
 
   useEffect(() => {
-    if (!isAdmin && (currentView === "admin" || currentView === "matches")) {
+    if (!isAdmin && currentView === "admin") {
       setCurrentView("predict");
     }
   }, [currentView, isAdmin]);
@@ -163,13 +162,7 @@ export default function App() {
           )}
           {currentView === "settings" && <SettingsView />}
           {currentView === "admin" && isAdmin && (
-            <AdminView
-              currentUserId={user.id}
-              onNavigateToMatches={() => setCurrentView("matches")}
-            />
-          )}
-          {currentView === "matches" && isAdmin && (
-            <MatchesView onBack={() => setCurrentView("admin")} />
+            <AdminView currentUserId={user.id} />
           )}
         </Suspense>
       </main>
