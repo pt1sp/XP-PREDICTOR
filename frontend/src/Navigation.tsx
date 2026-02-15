@@ -1,4 +1,4 @@
-import type { ViewType } from "./types";
+﻿import type { ViewType } from "./types";
 
 type NavigationProps = {
   currentView: ViewType;
@@ -14,6 +14,7 @@ export default function Navigation({
   return (
     <nav className="navigation">
       <button
+        type="button"
         className={`navBtn ${currentView === "predict" ? "active" : ""}`}
         onClick={() => onViewChange("predict")}
       >
@@ -25,6 +26,7 @@ export default function Navigation({
       </button>
 
       <button
+        type="button"
         className={`navBtn ${currentView === "record" ? "active" : ""}`}
         onClick={() => onViewChange("record")}
       >
@@ -36,6 +38,7 @@ export default function Navigation({
       </button>
 
       <button
+        type="button"
         className={`navBtn ${currentView === "history" ? "active" : ""}`}
         onClick={() => onViewChange("history")}
       >
@@ -46,8 +49,21 @@ export default function Navigation({
         <span>履歴</span>
       </button>
 
+      <button
+        type="button"
+        className={`navBtn ${currentView === "settings" ? "active" : ""}`}
+        onClick={() => onViewChange("settings")}
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" />
+          <path d="M19.4 15a7.8 7.8 0 0 0 .1-1l2-1.5-2-3.5-2.4.8a7.7 7.7 0 0 0-1.7-1l-.4-2.5h-4l-.4 2.5a7.7 7.7 0 0 0-1.7 1L4.5 9 2.5 12.5l2 1.5a7.8 7.8 0 0 0 .1 1l-2 1.5 2 3.5 2.4-.8c.5.4 1.1.7 1.7 1l.4 2.5h4l.4-2.5c.6-.3 1.2-.6 1.7-1l2.4.8 2-3.5-2-1.5z" />
+        </svg>
+        <span>設定</span>
+      </button>
+
       {isAdmin && (
         <button
+          type="button"
           className={`navBtn ${currentView === "admin" ? "active" : ""}`}
           onClick={() => onViewChange("admin")}
         >

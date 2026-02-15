@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import {
   deleteAdminSession,
   fetchAdminSessions,
@@ -190,66 +190,68 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
               </div>
             ) : (
               <>
-              <div className="historyTableWrapper adminTableOnly">
-                <table className="historyTable">
-                  <thead>
-                    <tr>
-                      <th>日時</th>
-                      <th>ユーザー</th>
-                      <th>武器</th>
-                      <th>勝</th>
-                      <th>敗</th>
-                      <th>操作</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sessions.map((s) => (
-                      <tr key={s.id}>
-                        <td>{formatDateTime(s.playedAt)}</td>
-                        <td>{s.user?.loginId ?? "-"}</td>
-                        <td>{s.weapon}</td>
-                        <td className="historyWins">{s.wins}</td>
-                        <td className="historyLosses">{s.losses}</td>
-                        <td>
-                          <button
-                            className="quickBtn"
-                            type="button"
-                            disabled={deletingSessionId === s.id}
-                            onClick={() => void handleDeleteSession(s.id)}
-                          >
-                            {deletingSessionId === s.id ? "削除中..." : "削除"}
-                          </button>
-                        </td>
+                <div className="historyTableWrapper adminTableOnly">
+                  <table className="historyTable">
+                    <thead>
+                      <tr>
+                        <th>日時</th>
+                        <th>ユーザー</th>
+                        <th>武器</th>
+                        <th>勝</th>
+                        <th>敗</th>
+                        <th>操作</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="adminSessionList adminMobileOnly">
-                {sessions.map((s) => (
-                  <details key={`admin-session-${s.id}`} className="historyCard">
-                    <summary className="historyCardSummary">
-                      <span className="historyDate">{formatDateTime(s.playedAt)}</span>
-                      <span className="historyWeapon">{s.weapon}</span>
-                      <span className="historyWinRate">{s.wins}W {s.losses}L</span>
-                    </summary>
-                    <div className="historyCardDetails">
-                      <div className="historyRow">
-                        <span>User</span>
-                        <strong>{s.user?.loginId ?? "-"}</strong>
+                    </thead>
+                    <tbody>
+                      {sessions.map((s) => (
+                        <tr key={s.id}>
+                          <td>{formatDateTime(s.playedAt)}</td>
+                          <td>{s.user?.loginId ?? "-"}</td>
+                          <td>{s.weapon}</td>
+                          <td className="historyWins">{s.wins}</td>
+                          <td className="historyLosses">{s.losses}</td>
+                          <td>
+                            <button
+                              className="quickBtn"
+                              type="button"
+                              disabled={deletingSessionId === s.id}
+                              onClick={() => void handleDeleteSession(s.id)}
+                            >
+                              {deletingSessionId === s.id ? "削除中..." : "削除"}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="adminSessionList adminMobileOnly">
+                  {sessions.map((s) => (
+                    <details key={`admin-session-${s.id}`} className="historyCard">
+                      <summary className="historyCardSummary">
+                        <span className="historyDate">{formatDateTime(s.playedAt)}</span>
+                        <span className="historyWeapon">{s.weapon}</span>
+                        <span className="historyWinRate">
+                          {s.wins}W {s.losses}L
+                        </span>
+                      </summary>
+                      <div className="historyCardDetails">
+                        <div className="historyRow">
+                          <span>User</span>
+                          <strong>{s.user?.loginId ?? "-"}</strong>
+                        </div>
+                        <button
+                          className="quickBtn historyDeleteBtn"
+                          type="button"
+                          disabled={deletingSessionId === s.id}
+                          onClick={() => void handleDeleteSession(s.id)}
+                        >
+                          {deletingSessionId === s.id ? "Deleting..." : "Delete"}
+                        </button>
                       </div>
-                      <button
-                        className="quickBtn historyDeleteBtn"
-                        type="button"
-                        disabled={deletingSessionId === s.id}
-                        onClick={() => void handleDeleteSession(s.id)}
-                      >
-                        {deletingSessionId === s.id ? "Deleting..." : "Delete"}
-                      </button>
-                    </div>
-                  </details>
-                ))}
-              </div>
+                    </details>
+                  ))}
+                </div>
               </>
             )}
           </div>
@@ -266,7 +268,9 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
                 min={3}
                 max={30}
                 value={warmup}
-                onChange={(e) => setWarmup(Math.max(3, Math.min(30, Number(e.target.value) || 6)))}
+                onChange={(e) =>
+                  setWarmup(Math.max(3, Math.min(30, Number(e.target.value) || 6)))
+                }
               />
             </div>
             <div className="filterGroup">
@@ -284,7 +288,12 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
             </div>
             <div className="filterGroup">
               <label className="filterLabel">実行</label>
-              <button className="quickBtn" type="button" disabled={evalLoading} onClick={() => void runOfflineEvaluation()}>
+              <button
+                className="quickBtn"
+                type="button"
+                disabled={evalLoading}
+                onClick={() => void runOfflineEvaluation()}
+              >
                 {evalLoading ? "評価中..." : "オフライン評価を実行"}
               </button>
             </div>
@@ -322,14 +331,38 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
               </div>
               <div className="adminEvalSummary adminMobileOnly" style={{ marginTop: 12 }}>
                 <div className="historyCardDetails">
-                  <div className="historyRow"><span>Evaluated</span><strong>{evalResult.evaluatedCount}</strong></div>
-                  <div className="historyRow"><span>WinRate MAE</span><strong>{pct(evalResult.summary.maeWinRate)}</strong></div>
-                  <div className="historyRow"><span>WinRate RMSE</span><strong>{pct(evalResult.summary.rmseWinRate)}</strong></div>
-                  <div className="historyRow"><span>XP MAE</span><strong>{Math.round(evalResult.summary.maeXpDelta)}</strong></div>
-                  <div className="historyRow"><span>XP RMSE</span><strong>{Math.round(evalResult.summary.rmseXpDelta)}</strong></div>
-                  <div className="historyRow"><span>WinRate CI Coverage</span><strong>{pct(evalResult.summary.winRateCoverage)}</strong></div>
-                  <div className="historyRow"><span>XP CI Coverage</span><strong>{pct(evalResult.summary.xpDeltaCoverage)}</strong></div>
-                  <div className="historyRow"><span>Recommendation Precision</span><strong>{pct(evalResult.summary.recommendationPrecision)}</strong></div>
+                  <div className="historyRow">
+                    <span>Evaluated</span>
+                    <strong>{evalResult.evaluatedCount}</strong>
+                  </div>
+                  <div className="historyRow">
+                    <span>WinRate MAE</span>
+                    <strong>{pct(evalResult.summary.maeWinRate)}</strong>
+                  </div>
+                  <div className="historyRow">
+                    <span>WinRate RMSE</span>
+                    <strong>{pct(evalResult.summary.rmseWinRate)}</strong>
+                  </div>
+                  <div className="historyRow">
+                    <span>XP MAE</span>
+                    <strong>{Math.round(evalResult.summary.maeXpDelta)}</strong>
+                  </div>
+                  <div className="historyRow">
+                    <span>XP RMSE</span>
+                    <strong>{Math.round(evalResult.summary.rmseXpDelta)}</strong>
+                  </div>
+                  <div className="historyRow">
+                    <span>WinRate CI Coverage</span>
+                    <strong>{pct(evalResult.summary.winRateCoverage)}</strong>
+                  </div>
+                  <div className="historyRow">
+                    <span>XP CI Coverage</span>
+                    <strong>{pct(evalResult.summary.xpDeltaCoverage)}</strong>
+                  </div>
+                  <div className="historyRow">
+                    <span>Recommendation Precision</span>
+                    <strong>{pct(evalResult.summary.recommendationPrecision)}</strong>
+                  </div>
                 </div>
               </div>
 
@@ -382,14 +415,42 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
                       <span className="historyWinRate">{pct(row.actualWinRate)}</span>
                     </summary>
                     <div className="historyCardDetails">
-                      <div className="historyRow"><span>Rule</span><strong>{row.rule}</strong></div>
-                      <div className="historyRow"><span>Pred WinRate</span><strong>{pct(row.predictedWinRate)}</strong></div>
-                      <div className="historyRow"><span>Actual WinRate</span><strong>{pct(row.actualWinRate)}</strong></div>
-                      <div className="historyRow"><span>WinRate 95%CI</span><strong>{pct(row.winRateInterval.low)} - {pct(row.winRateInterval.high)}</strong></div>
-                      <div className="historyRow"><span>Pred XP Delta</span><strong>{signed(row.predictedXpDelta)}</strong></div>
-                      <div className="historyRow"><span>Actual XP Delta</span><strong>{signed(row.actualXpDelta)}</strong></div>
-                      <div className="historyRow"><span>XP 95%CI</span><strong>{signed(row.xpDeltaInterval.low)} - {signed(row.xpDeltaInterval.high)}</strong></div>
-                      <div className="historyRow"><span>Recommendation</span><strong>{row.recommendPlay ? "Play" : "Skip"}</strong></div>
+                      <div className="historyRow">
+                        <span>Rule</span>
+                        <strong>{row.rule}</strong>
+                      </div>
+                      <div className="historyRow">
+                        <span>Pred WinRate</span>
+                        <strong>{pct(row.predictedWinRate)}</strong>
+                      </div>
+                      <div className="historyRow">
+                        <span>Actual WinRate</span>
+                        <strong>{pct(row.actualWinRate)}</strong>
+                      </div>
+                      <div className="historyRow">
+                        <span>WinRate 95%CI</span>
+                        <strong>
+                          {pct(row.winRateInterval.low)} - {pct(row.winRateInterval.high)}
+                        </strong>
+                      </div>
+                      <div className="historyRow">
+                        <span>Pred XP Delta</span>
+                        <strong>{signed(row.predictedXpDelta)}</strong>
+                      </div>
+                      <div className="historyRow">
+                        <span>Actual XP Delta</span>
+                        <strong>{signed(row.actualXpDelta)}</strong>
+                      </div>
+                      <div className="historyRow">
+                        <span>XP 95%CI</span>
+                        <strong>
+                          {signed(row.xpDeltaInterval.low)} - {signed(row.xpDeltaInterval.high)}
+                        </strong>
+                      </div>
+                      <div className="historyRow">
+                        <span>Recommendation</span>
+                        <strong>{row.recommendPlay ? "Play" : "Skip"}</strong>
+                      </div>
                       <div className="historyMemoCard">{row.advice}</div>
                     </div>
                   </details>
@@ -402,4 +463,3 @@ export default function AdminView({ currentUserId }: AdminViewProps) {
     </div>
   );
 }
-

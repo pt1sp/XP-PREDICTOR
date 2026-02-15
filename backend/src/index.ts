@@ -1,4 +1,4 @@
-﻿import crypto from "node:crypto";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import "dotenv/config";
@@ -85,6 +85,26 @@ type SessionRow = {
   createdAt: string;
 };
 
+type MatchRow = {
+  id: number;
+  externalId: string;
+  playedAt: string;
+  mode: string;
+  rule: string;
+  stage: string;
+  weapon: string;
+  result: string;
+  importedAt: string;
+  user?: {
+    id: number;
+    loginId: string;
+  } | null;
+};
+
+type MatchDetailRow = MatchRow & {
+  rawJson: string;
+};
+
 function toSafeUser(user: DbUser): SafeUser {
   return {
     id: user.id,
@@ -121,6 +141,13 @@ function parseBearerToken(req: Request): string | null {
   const match = header.match(/^Bearer\s+(.+)$/i);
   if (!match) return null;
   return match[1].trim();
+}
+
+function parseCollectorToken(req: Request): string | null {
+  const header = req.header("x-collector-token");
+  if (!header) return null;
+  const token = header.trim();
+  return token ? token : null;
 }
 
 function hashPassword(password: string): string {
@@ -171,6 +198,26 @@ function getUserByToken(token: string): DbUser | null {
   if (row) return row;
 
   db.prepare(`DELETE FROM auth_tokens WHERE token = ? OR expires_at <= ?`).run(tokenHash, nowIso);
+  return null;
+}
+
+function getUserByCollectorToken(token: string): DbUser | null {
+  const tokenHash = hashToken(token);
+  const row = db
+    .prepare(
+      `SELECT u.*
+       FROM collector_tokens ct
+       JOIN users u ON u.id = ct.user_id
+       WHERE ct.token = ? AND ct.revoked_at IS NULL`
+    )
+    .get(tokenHash) as DbUser | undefined;
+
+  if (row) {
+    db.prepare(`UPDATE collector_tokens SET last_used_at = CURRENT_TIMESTAMP WHERE token = ?`).run(
+      tokenHash
+    );
+    return row;
+  }
   return null;
 }
 
@@ -232,6 +279,19 @@ function requireAuth(req: Request, res: Response): DbUser | null {
   return user;
 }
 
+function requireCollectorOrAuth(req: Request, res: Response): DbUser | null {
+  const collectorToken = parseCollectorToken(req);
+  if (collectorToken) {
+    const user = getUserByCollectorToken(collectorToken);
+    if (!user) {
+      res.status(401).json({ error: "Invalid collector token" });
+      return null;
+    }
+    return user;
+  }
+  return requireAuth(req, res);
+}
+
 function requireAdmin(req: Request, res: Response): DbUser | null {
   const user = requireAuth(req, res);
   if (!user) return null;
@@ -266,20 +326,6 @@ function fetchAllSessions(): SessionRow[] {
     )
     .all() as SessionRow[];
 }
-
-let cachedAllSessionRecords: SessionRecord[] | null = null;
-
-function invalidateSessionRecordCache() {
-  cachedAllSessionRecords = null;
-}
-
-function fetchAllSessionRecords(): SessionRecord[] {
-  if (cachedAllSessionRecords) return cachedAllSessionRecords;
-  const rows = fetchAllSessions();
-  cachedAllSessionRecords = rows.map(toSessionRecord);
-  return cachedAllSessionRecords;
-}
-
 function ensureBuiltinAdminAccount() {
   if (!BUILTIN_ADMIN_PASSWORD) {
     console.warn("BUILTIN_ADMIN_PASSWORD is not configured; skipping bootstrap admin creation.");
@@ -519,7 +565,6 @@ app.post("/api/admin/dev/reset-user", (req, res) => {
       db.prepare(`DELETE FROM "Session" WHERE userId = ?`).run(existing.id);
       db.prepare(`DELETE FROM auth_tokens WHERE user_id = ?`).run(existing.id);
       db.prepare(`DELETE FROM users WHERE id = ?`).run(existing.id);
-      invalidateSessionRecordCache();
     }
 
     const passwordHash = hashPassword(password);
@@ -534,7 +579,6 @@ app.post("/api/admin/dev/reset-user", (req, res) => {
       .prepare(`INSERT INTO users (${insertColumns.join(", ")}) VALUES (${placeholders})`)
       .run(...insertValues);
 
-    invalidateSessionRecordCache();
     const userId = Number(result.lastInsertRowid);
     res.json({ ok: true, userId, loginId, role });
   } catch (err) {
@@ -583,6 +627,425 @@ app.get("/api/admin/sessions", (req, res) => {
   );
 });
 
+function parsePositiveIntQuery(value: unknown): number | null {
+  if (typeof value !== "string") return null;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 0) return null;
+  return parsed;
+}
+
+app.get("/api/admin/matches", (req, res) => {
+  const admin = requireAdmin(req, res);
+  if (!admin) return;
+
+  const limitRaw = parsePositiveIntQuery(req.query.limit);
+  const offsetRaw = parsePositiveIntQuery(req.query.offset);
+  const limit = Math.max(1, Math.min(500, limitRaw ?? 50));
+  const offset = Math.max(0, offsetRaw ?? 0);
+
+  const totalRow = db.prepare(`SELECT COUNT(*) as count FROM matches`).get() as
+    | { count: number }
+    | undefined;
+  const total = Number(totalRow?.count ?? 0);
+
+  const rows = db
+    .prepare(
+      `SELECT
+        m.id,
+        external_id as externalId,
+        played_at as playedAt,
+        mode,
+        rule,
+        stage,
+        weapon,
+        result,
+        imported_at as importedAt,
+        u.id as user_id,
+        u.login_id as user_login_id
+       FROM matches m
+       LEFT JOIN users u ON u.id = m.user_id
+       ORDER BY m.played_at DESC, m.id DESC
+       LIMIT ? OFFSET ?`
+    )
+    .all(limit, offset) as Array<
+    Omit<MatchRow, "user"> & { user_id: number | null; user_login_id: string | null }
+  >;
+
+  res.json({
+    total,
+    limit,
+    offset,
+    rows: rows.map((r) => ({
+      id: r.id,
+      externalId: r.externalId,
+      playedAt: r.playedAt,
+      mode: r.mode,
+      rule: r.rule,
+      stage: r.stage,
+      weapon: r.weapon,
+      result: r.result,
+      importedAt: r.importedAt,
+      user: r.user_id ? { id: r.user_id, loginId: r.user_login_id ?? "-" } : null,
+    })),
+  });
+});
+
+app.get("/api/admin/matches/:id", (req, res) => {
+  const admin = requireAdmin(req, res);
+  if (!admin) return;
+
+  const matchId = Number(req.params.id);
+  if (!Number.isInteger(matchId) || matchId <= 0) {
+    return res.status(400).json({ error: "Invalid match id" });
+  }
+
+  const row = db
+    .prepare(
+      `SELECT
+        m.id,
+        external_id as externalId,
+        played_at as playedAt,
+        mode,
+        rule,
+        stage,
+        weapon,
+        result,
+        imported_at as importedAt,
+        raw_json as rawJson,
+        u.id as user_id,
+        u.login_id as user_login_id
+       FROM matches m
+       LEFT JOIN users u ON u.id = m.user_id
+       WHERE m.id = ?`
+    )
+    .get(matchId) as (MatchDetailRow & { user_id: number | null; user_login_id: string | null }) | undefined;
+
+  if (!row) {
+    return res.status(404).json({ error: "Match not found" });
+  }
+
+  res.json({
+    id: row.id,
+    externalId: row.externalId,
+    playedAt: row.playedAt,
+    mode: row.mode,
+    rule: row.rule,
+    stage: row.stage,
+    weapon: row.weapon,
+    result: row.result,
+    importedAt: row.importedAt,
+    rawJson: row.rawJson,
+    user: row.user_id ? { id: row.user_id, loginId: row.user_login_id ?? "-" } : null,
+  });
+});
+
+app.post("/api/admin/matches/set-user", (req, res) => {
+  const admin = requireAdmin(req, res);
+  if (!admin) return;
+
+  const loginId = String(req.body?.loginId ?? "").trim();
+  const scopeRaw = String(req.body?.scope ?? "null-only").trim().toLowerCase();
+  const scope = scopeRaw === "all" ? "all" : "null-only";
+
+  if (!loginId) {
+    return res.status(400).json({ error: "loginId is required" });
+  }
+
+  const target = db
+    .prepare(`SELECT id, login_id FROM users WHERE login_id = ?`)
+    .get(loginId) as { id: number; login_id: string } | undefined;
+  if (!target) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  const before = db
+    .prepare(
+      `SELECT
+         COUNT(*) as total,
+         SUM(CASE WHEN user_id IS NULL THEN 1 ELSE 0 END) as nulls,
+         SUM(CASE WHEN user_id = ? THEN 1 ELSE 0 END) as mine
+       FROM matches`
+    )
+    .get(target.id) as { total: number; nulls: number | null; mine: number | null } | undefined;
+
+  const stmt =
+    scope === "all"
+      ? db.prepare(`UPDATE matches SET user_id = ?`)
+      : db.prepare(`UPDATE matches SET user_id = ? WHERE user_id IS NULL`);
+
+  const result = stmt.run(target.id);
+
+  const after = db
+    .prepare(
+      `SELECT
+         COUNT(*) as total,
+         SUM(CASE WHEN user_id IS NULL THEN 1 ELSE 0 END) as nulls,
+         SUM(CASE WHEN user_id = ? THEN 1 ELSE 0 END) as mine
+       FROM matches`
+    )
+    .get(target.id) as { total: number; nulls: number | null; mine: number | null } | undefined;
+
+  res.json({
+    ok: true,
+    scope,
+    loginId: target.login_id,
+    userId: target.id,
+    updated: Number(result.changes ?? 0),
+    before: before ?? null,
+    after: after ?? null,
+  });
+});
+
+app.get("/api/matches", (req, res) => {
+  const user = requireAuth(req, res);
+  if (!user) return;
+
+  const limitRaw = parsePositiveIntQuery(req.query.limit);
+  const offsetRaw = parsePositiveIntQuery(req.query.offset);
+  const limit = Math.max(1, Math.min(500, limitRaw ?? 50));
+  const offset = Math.max(0, offsetRaw ?? 0);
+
+  const totalRow = db
+    .prepare(`SELECT COUNT(*) as count FROM matches WHERE user_id = ?`)
+    .get(user.id) as { count: number } | undefined;
+  const total = Number(totalRow?.count ?? 0);
+
+  const rows = db
+    .prepare(
+      `SELECT
+        m.id,
+        external_id as externalId,
+        played_at as playedAt,
+        mode,
+        rule,
+        stage,
+        weapon,
+        result,
+        imported_at as importedAt
+       FROM matches m
+       WHERE m.user_id = ?
+       ORDER BY m.played_at DESC, m.id DESC
+       LIMIT ? OFFSET ?`
+    )
+    .all(user.id, limit, offset) as Array<Omit<MatchRow, "user">>;
+
+  res.json({
+    total,
+    limit,
+    offset,
+    rows: rows.map((r) => ({
+      id: r.id,
+      externalId: r.externalId,
+      playedAt: r.playedAt,
+      mode: r.mode,
+      rule: r.rule,
+      stage: r.stage,
+      weapon: r.weapon,
+      result: r.result,
+      importedAt: r.importedAt,
+    })),
+  });
+});
+
+app.get("/api/matches/:id", (req, res) => {
+  const user = requireAuth(req, res);
+  if (!user) return;
+
+  const matchId = Number(req.params.id);
+  if (!Number.isInteger(matchId) || matchId <= 0) {
+    return res.status(400).json({ error: "Invalid match id" });
+  }
+
+  const row = db
+    .prepare(
+      `SELECT
+        m.id,
+        external_id as externalId,
+        played_at as playedAt,
+        mode,
+        rule,
+        stage,
+        weapon,
+        result,
+        imported_at as importedAt,
+        raw_json as rawJson,
+        m.user_id as user_id
+       FROM matches m
+       WHERE m.id = ?`
+    )
+    .get(matchId) as (Omit<MatchDetailRow, "user"> & { user_id: number | null }) | undefined;
+
+  if (!row) {
+    return res.status(404).json({ error: "Match not found" });
+  }
+
+  if (user.role !== "ADMIN" && row.user_id !== user.id) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+
+  res.json({
+    id: row.id,
+    externalId: row.externalId,
+    playedAt: row.playedAt,
+    mode: row.mode,
+    rule: row.rule,
+    stage: row.stage,
+    weapon: row.weapon,
+    result: row.result,
+    importedAt: row.importedAt,
+    rawJson: row.rawJson,
+  });
+});
+
+function extractMatchSummary(payload: unknown): {
+  externalId: string;
+  playedAt: string;
+  mode: string;
+  rule: string;
+  stage: string;
+  weapon: string;
+  result: string;
+} | null {
+  const root =
+    (payload as any)?.vsHistoryDetail ??
+    (payload as any)?.data?.vsHistoryDetail ??
+    payload;
+  if (!root || typeof root !== "object") return null;
+
+  const externalId = String((root as any).id ?? "").trim();
+  if (!externalId) return null;
+
+  const playedAt = String((root as any).playedTime ?? (root as any).playedAt ?? "").trim();
+  if (!playedAt) return null;
+
+  const mode = String((root as any)?.vsMode?.mode ?? (root as any)?.vsMode?.name ?? "").trim();
+  const rule = String((root as any)?.vsRule?.name ?? "").trim();
+  const stage = String((root as any)?.vsStage?.name ?? "").trim();
+
+  const judgement = String((root as any)?.judgement ?? "").trim();
+  const result = judgement ? judgement.toUpperCase() : "";
+
+  const myTeamPlayers = Array.isArray((root as any)?.myTeam?.players) ? (root as any).myTeam.players : [];
+  const me = myTeamPlayers.find((p: any) => p?.isMyself);
+  const weapon = String(me?.weapon?.name ?? (root as any)?.player?.weapon?.name ?? "").trim();
+
+  return { externalId, playedAt, mode, rule, stage, weapon, result };
+}
+
+app.post("/api/ingest/matches", (req, res) => {
+  const user = requireCollectorOrAuth(req, res);
+  if (!user) return;
+
+  const requestedLoginId = String(req.body?.userLoginId ?? "").trim();
+  let ingestUserId = user.id;
+  if (requestedLoginId) {
+    if (user.role !== "ADMIN") {
+      return res.status(403).json({ error: "userLoginId override requires ADMIN" });
+    }
+    const target = db
+      .prepare(`SELECT id FROM users WHERE login_id = ?`)
+      .get(requestedLoginId) as { id: number } | undefined;
+    if (!target) {
+      return res.status(400).json({ error: "userLoginId not found" });
+    }
+    ingestUserId = target.id;
+  }
+
+  const items = req.body?.matches;
+  if (!Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ error: "matches (array) is required" });
+  }
+  if (items.length > 250) {
+    return res.status(400).json({ error: "matches length must be <= 250" });
+  }
+
+  const selectStmt = db.prepare(`SELECT 1 FROM matches WHERE external_id = ?`);
+  const insertStmt = db.prepare(`
+    INSERT INTO matches (user_id, external_id, played_at, mode, rule, stage, weapon, result, raw_json)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  let inserted = 0;
+  let skipped = 0;
+  let invalid = 0;
+
+  for (const item of items) {
+    try {
+      const rawJsonText =
+        typeof item === "string" ? item : JSON.stringify(item);
+      const parsed = extractMatchSummary(JSON.parse(rawJsonText));
+      if (!parsed) {
+        invalid += 1;
+        continue;
+      }
+      const exists = selectStmt.get(parsed.externalId);
+      if (exists) {
+        skipped += 1;
+        continue;
+      }
+      insertStmt.run(
+        ingestUserId,
+        parsed.externalId,
+        parsed.playedAt,
+        parsed.mode,
+        parsed.rule,
+        parsed.stage,
+        parsed.weapon,
+        parsed.result,
+        rawJsonText
+      );
+      inserted += 1;
+    } catch {
+      invalid += 1;
+    }
+  }
+
+  res.json({ ok: true, inserted, skipped, invalid });
+});
+
+app.post("/api/admin/collector-tokens", (req, res) => {
+  const admin = requireAdmin(req, res);
+  if (!admin) return;
+
+  const userId = Number(req.body?.userId);
+  const label = String(req.body?.label ?? "").slice(0, 100);
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return res.status(400).json({ error: "userId is required" });
+  }
+
+  const target = db.prepare(`SELECT id FROM users WHERE id = ?`).get(userId) as { id: number } | undefined;
+  if (!target) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  const token = crypto.randomBytes(32).toString("hex");
+  const tokenHash = hashToken(token);
+  db.prepare(`INSERT INTO collector_tokens (token, user_id, label) VALUES (?, ?, ?)`).run(
+    tokenHash,
+    userId,
+    label
+  );
+
+  res.json({ token });
+});
+
+app.post("/api/collector-tokens", (req, res) => {
+  const user = requireAuth(req, res);
+  if (!user) return;
+
+  const label = String(req.body?.label ?? "").slice(0, 100);
+  const token = crypto.randomBytes(32).toString("hex");
+  const tokenHash = hashToken(token);
+
+  db.prepare(`INSERT INTO collector_tokens (token, user_id, label) VALUES (?, ?, ?)`).run(
+    tokenHash,
+    user.id,
+    label
+  );
+
+  // Return only once; caller should store securely.
+  res.json({ token });
+});
 app.delete("/api/admin/sessions/:id", (req, res) => {
   const admin = requireAdmin(req, res);
   if (!admin) return;
@@ -601,7 +1064,6 @@ app.delete("/api/admin/sessions/:id", (req, res) => {
   }
 
   db.prepare(`DELETE FROM "Session" WHERE id = ?`).run(sessionId);
-  invalidateSessionRecordCache();
   res.json({ ok: true });
 });
 
@@ -619,7 +1081,7 @@ app.get("/api/admin/evaluation/offline", (req, res) => {
   const limitRaw = Number(req.query.limit ?? 120);
   const limit = Number.isFinite(limitRaw) ? Math.max(20, Math.min(500, Math.trunc(limitRaw))) : 120;
 
-  const allSessions = fetchAllSessionRecords();
+  const allSessions = fetchAllSessions().map(toSessionRecord);
   const targetSessions = allSessions
     .filter((s) => s.userId === targetUserId)
     .sort((a, b) => a.playedAt.getTime() - b.playedAt.getTime());
@@ -653,21 +1115,14 @@ app.get("/api/admin/evaluation/offline", (req, res) => {
     note: string;
   }> = [];
 
-  const train: SessionRecord[] = [];
-  let seenTargetSessions = 0;
-
-  for (const current of allSessions) {
-    const isTarget = current.userId === targetUserId;
-    if (!isTarget) {
-      train.push(current);
-      continue;
-    }
-
-    if (seenTargetSessions < warmup || train.length < warmup) {
-      seenTargetSessions += 1;
-      train.push(current);
-      continue;
-    }
+  for (let i = warmup; i < targetSessions.length; i += 1) {
+    const current = targetSessions[i];
+    const train = allSessions.filter(
+      (s) =>
+        s.playedAt.getTime() < current.playedAt.getTime() ||
+        (s.playedAt.getTime() === current.playedAt.getTime() && s.id < current.id)
+    );
+    if (train.length < warmup) continue;
 
     const condition: PredictionCondition = {
       rule: current.rule,
@@ -708,9 +1163,6 @@ app.get("/api/admin/evaluation/offline", (req, res) => {
       advice: pred.advice,
       note: pred.note,
     });
-
-    seenTargetSessions += 1;
-    train.push(current);
   }
 
   const recent = rows.slice(-limit);
@@ -809,7 +1261,6 @@ app.post("/api/sessions", (req, res) => {
       .prepare(`SELECT * FROM "Session" WHERE id = ?`)
       .get(Number(result.lastInsertRowid)) as SessionRow;
 
-    invalidateSessionRecordCache();
     res.json(created);
   } catch (err) {
     console.error(err);
@@ -850,7 +1301,6 @@ app.delete("/api/sessions/:id", (req, res) => {
   }
 
   db.prepare(`DELETE FROM "Session" WHERE id = ?`).run(sessionId);
-  invalidateSessionRecordCache();
   res.json({ ok: true });
 });
 
@@ -912,7 +1362,7 @@ app.post("/api/prediction/next", (req, res) => {
       startXp: Number(startXp),
     };
 
-    const allSessions = fetchAllSessionRecords();
+    const allSessions = fetchAllSessions().map(toSessionRecord);
     const result = predictPersonalizedByCondition(allSessions, condition, targetUserId);
     res.json(result);
   } catch (err) {
@@ -944,4 +1394,3 @@ const PORT = Number(process.env.PORT ?? 10000);
 app.listen(PORT, () => {
   console.log(`Backend listening on port ${PORT}`);
 });
-
