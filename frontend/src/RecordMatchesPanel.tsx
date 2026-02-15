@@ -36,6 +36,36 @@ type FormattedMatch = {
   otherPlayers: FormattedPlayer[];
 };
 
+type JsonObject = Record<string, unknown>;
+
+function asObject(value: unknown): JsonObject | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  return value as JsonObject;
+}
+
+function asArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function getPath(root: unknown, path: string[]): unknown {
+  let cur: unknown = root;
+  for (const key of path) {
+    const obj = asObject(cur);
+    if (!obj) return undefined;
+    cur = obj[key];
+  }
+  return cur;
+}
+
+function readString(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+
+function readNumberOrNull(root: unknown, path: string[]): number | null {
+  const v = getPath(root, path);
+  return typeof v === "number" ? v : null;
+}
+
 function formatDateTime(value: string) {
   const d = new Date(value);
   return Number.isNaN(d.getTime()) ? "-" : d.toLocaleString("ja-JP");
@@ -176,8 +206,14 @@ export default function RecordMatchesPanel({ sessions }: Props) {
   const parsedVs = useMemo(() => {
     if (!detail?.rawJson) return null;
     try {
-      const payload = JSON.parse(detail.rawJson) as any;
-      return (payload?.data?.vsHistoryDetail ?? payload?.vsHistoryDetail ?? payload) as any;
+      const payload: unknown = JSON.parse(detail.rawJson);
+      const obj = asObject(payload);
+      if (!obj) return payload;
+
+      const data = asObject(obj.data);
+      if (data && data.vsHistoryDetail !== undefined) return data.vsHistoryDetail;
+      if (obj.vsHistoryDetail !== undefined) return obj.vsHistoryDetail;
+      return payload;
     } catch {
       return null;
     }
@@ -186,49 +222,43 @@ export default function RecordMatchesPanel({ sessions }: Props) {
   const formatted: FormattedMatch | null = useMemo(() => {
     if (!parsedVs) return null;
 
-    const vsRuleName = String(parsedVs?.vsRule?.name ?? "");
-    const stageName = String(parsedVs?.vsStage?.name ?? "");
-    const playedTime = String(parsedVs?.playedTime ?? "");
-    const durationSec = typeof parsedVs?.duration === "number" ? parsedVs.duration : null;
-    const knockout = Boolean(parsedVs?.knockout);
-    const judgement = String(parsedVs?.judgement ?? "");
+    const vsRuleName = readString(getPath(parsedVs, ["vsRule", "name"]));
+    const stageName = readString(getPath(parsedVs, ["vsStage", "name"]));
+    const playedTime = readString(getPath(parsedVs, ["playedTime"]));
+    const durationSec = readNumberOrNull(parsedVs, ["duration"]);
+    const knockout = Boolean(getPath(parsedVs, ["knockout"]));
+    const judgement = readString(getPath(parsedVs, ["judgement"]));
 
-    const myTeam = parsedVs?.myTeam ?? null;
-    const otherTeam = Array.isArray(parsedVs?.otherTeams) ? parsedVs.otherTeams[0] : null;
+    const myTeam = getPath(parsedVs, ["myTeam"]);
+    const otherTeam = asArray(getPath(parsedVs, ["otherTeams"]))[0];
 
-    const teamScore = (t: any) => {
-      const s = t?.result?.score;
-      return typeof s === "number" ? s : null;
-    };
+    const teamScore = (t: unknown) => readNumberOrNull(t, ["result", "score"]);
 
     const myScore = teamScore(myTeam);
     const otherScore = teamScore(otherTeam);
 
-    const awards = Array.isArray(parsedVs?.awards)
-      ? parsedVs.awards
-          .map((a: any) => String(a?.name ?? "").trim())
-          .filter(Boolean)
-      : [];
+    const awards = asArray(getPath(parsedVs, ["awards"]))
+      .map((a) => readString(getPath(a, ["name"])).trim())
+      .filter(Boolean);
 
-    const mapPlayers = (t: any): FormattedPlayer[] => {
-      const ps = Array.isArray(t?.players) ? t.players : [];
-      return ps.map((p: any) => {
-        const weapon = String(p?.weapon?.name ?? "").trim();
-        const name = String(p?.name ?? "").trim();
-        const byname = String(p?.byname ?? "").trim();
-        const isMyself = Boolean(p?.isMyself);
-        const r = p?.result ?? {};
+    const mapPlayers = (t: unknown): FormattedPlayer[] => {
+      const ps = asArray(getPath(t, ["players"]));
+      return ps.map((p) => {
+        const weapon = readString(getPath(p, ["weapon", "name"])).trim();
+        const name = readString(getPath(p, ["name"])).trim();
+        const byname = readString(getPath(p, ["byname"])).trim();
+        const isMyself = Boolean(getPath(p, ["isMyself"]));
         return {
-          key: String(p?.id ?? `${name}-${weapon}`),
+          key: String(getPath(p, ["id"]) ?? `${name}-${weapon}`),
           name,
           byname,
           weapon,
           isMyself,
-          kill: typeof r.kill === "number" ? r.kill : null,
-          death: typeof r.death === "number" ? r.death : null,
-          assist: typeof r.assist === "number" ? r.assist : null,
-          special: typeof r.special === "number" ? r.special : null,
-          paint: typeof r.paint === "number" ? r.paint : null,
+          kill: readNumberOrNull(p, ["result", "kill"]),
+          death: readNumberOrNull(p, ["result", "death"]),
+          assist: readNumberOrNull(p, ["result", "assist"]),
+          special: readNumberOrNull(p, ["result", "special"]),
+          paint: readNumberOrNull(p, ["result", "paint"]),
         };
       });
     };
@@ -651,4 +681,3 @@ export default function RecordMatchesPanel({ sessions }: Props) {
     </section>
   );
 }
-
