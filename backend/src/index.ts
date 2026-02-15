@@ -1,4 +1,4 @@
-﻿import crypto from "node:crypto";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import "dotenv/config";
@@ -727,6 +727,164 @@ app.get("/api/admin/matches/:id", (req, res) => {
   });
 });
 
+app.post("/api/admin/matches/set-user", (req, res) => {
+  const admin = requireAdmin(req, res);
+  if (!admin) return;
+
+  const loginId = String(req.body?.loginId ?? "").trim();
+  const scopeRaw = String(req.body?.scope ?? "null-only").trim().toLowerCase();
+  const scope = scopeRaw === "all" ? "all" : "null-only";
+
+  if (!loginId) {
+    return res.status(400).json({ error: "loginId is required" });
+  }
+
+  const target = db
+    .prepare(`SELECT id, login_id FROM users WHERE login_id = ?`)
+    .get(loginId) as { id: number; login_id: string } | undefined;
+  if (!target) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  const before = db
+    .prepare(
+      `SELECT
+         COUNT(*) as total,
+         SUM(CASE WHEN user_id IS NULL THEN 1 ELSE 0 END) as nulls,
+         SUM(CASE WHEN user_id = ? THEN 1 ELSE 0 END) as mine
+       FROM matches`
+    )
+    .get(target.id) as { total: number; nulls: number | null; mine: number | null } | undefined;
+
+  const stmt =
+    scope === "all"
+      ? db.prepare(`UPDATE matches SET user_id = ?`)
+      : db.prepare(`UPDATE matches SET user_id = ? WHERE user_id IS NULL`);
+
+  const result = stmt.run(target.id);
+
+  const after = db
+    .prepare(
+      `SELECT
+         COUNT(*) as total,
+         SUM(CASE WHEN user_id IS NULL THEN 1 ELSE 0 END) as nulls,
+         SUM(CASE WHEN user_id = ? THEN 1 ELSE 0 END) as mine
+       FROM matches`
+    )
+    .get(target.id) as { total: number; nulls: number | null; mine: number | null } | undefined;
+
+  res.json({
+    ok: true,
+    scope,
+    loginId: target.login_id,
+    userId: target.id,
+    updated: Number(result.changes ?? 0),
+    before: before ?? null,
+    after: after ?? null,
+  });
+});
+
+app.get("/api/matches", (req, res) => {
+  const user = requireAuth(req, res);
+  if (!user) return;
+
+  const limitRaw = parsePositiveIntQuery(req.query.limit);
+  const offsetRaw = parsePositiveIntQuery(req.query.offset);
+  const limit = Math.max(1, Math.min(500, limitRaw ?? 50));
+  const offset = Math.max(0, offsetRaw ?? 0);
+
+  const totalRow = db
+    .prepare(`SELECT COUNT(*) as count FROM matches WHERE user_id = ?`)
+    .get(user.id) as { count: number } | undefined;
+  const total = Number(totalRow?.count ?? 0);
+
+  const rows = db
+    .prepare(
+      `SELECT
+        m.id,
+        external_id as externalId,
+        played_at as playedAt,
+        mode,
+        rule,
+        stage,
+        weapon,
+        result,
+        imported_at as importedAt
+       FROM matches m
+       WHERE m.user_id = ?
+       ORDER BY m.played_at DESC, m.id DESC
+       LIMIT ? OFFSET ?`
+    )
+    .all(user.id, limit, offset) as Array<Omit<MatchRow, "user">>;
+
+  res.json({
+    total,
+    limit,
+    offset,
+    rows: rows.map((r) => ({
+      id: r.id,
+      externalId: r.externalId,
+      playedAt: r.playedAt,
+      mode: r.mode,
+      rule: r.rule,
+      stage: r.stage,
+      weapon: r.weapon,
+      result: r.result,
+      importedAt: r.importedAt,
+    })),
+  });
+});
+
+app.get("/api/matches/:id", (req, res) => {
+  const user = requireAuth(req, res);
+  if (!user) return;
+
+  const matchId = Number(req.params.id);
+  if (!Number.isInteger(matchId) || matchId <= 0) {
+    return res.status(400).json({ error: "Invalid match id" });
+  }
+
+  const row = db
+    .prepare(
+      `SELECT
+        m.id,
+        external_id as externalId,
+        played_at as playedAt,
+        mode,
+        rule,
+        stage,
+        weapon,
+        result,
+        imported_at as importedAt,
+        raw_json as rawJson,
+        m.user_id as user_id
+       FROM matches m
+       WHERE m.id = ?`
+    )
+    .get(matchId) as (Omit<MatchDetailRow, "user"> & { user_id: number | null }) | undefined;
+
+  if (!row) {
+    return res.status(404).json({ error: "Match not found" });
+  }
+
+  if (user.role !== "ADMIN" && row.user_id !== user.id) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+
+  res.json({
+    id: row.id,
+    externalId: row.externalId,
+    playedAt: row.playedAt,
+    mode: row.mode,
+    rule: row.rule,
+    stage: row.stage,
+    weapon: row.weapon,
+    result: row.result,
+    importedAt: row.importedAt,
+    rawJson: row.rawJson,
+  });
+});
+
 function extractMatchSummary(payload: unknown): {
   externalId: string;
   playedAt: string;
@@ -766,6 +924,21 @@ app.post("/api/ingest/matches", (req, res) => {
   const user = requireCollectorOrAuth(req, res);
   if (!user) return;
 
+  const requestedLoginId = String(req.body?.userLoginId ?? "").trim();
+  let ingestUserId = user.id;
+  if (requestedLoginId) {
+    if (user.role !== "ADMIN") {
+      return res.status(403).json({ error: "userLoginId override requires ADMIN" });
+    }
+    const target = db
+      .prepare(`SELECT id FROM users WHERE login_id = ?`)
+      .get(requestedLoginId) as { id: number } | undefined;
+    if (!target) {
+      return res.status(400).json({ error: "userLoginId not found" });
+    }
+    ingestUserId = target.id;
+  }
+
   const items = req.body?.matches;
   if (!Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: "matches (array) is required" });
@@ -799,7 +972,7 @@ app.post("/api/ingest/matches", (req, res) => {
         continue;
       }
       insertStmt.run(
-        user.id,
+        ingestUserId,
         parsed.externalId,
         parsed.playedAt,
         parsed.mode,
@@ -1202,4 +1375,3 @@ const PORT = Number(process.env.PORT ?? 10000);
 app.listen(PORT, () => {
   console.log(`Backend listening on port ${PORT}`);
 });
-

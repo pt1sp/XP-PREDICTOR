@@ -1,12 +1,11 @@
-import { Fragment, useEffect, useMemo, useState } from "react";
+﻿import { Fragment, useEffect, useMemo, useState } from "react";
 import { fetchAdminMatch, fetchAdminMatches, type AdminMatch, type AdminMatchDetail } from "./api";
-import "./MatchesView.css";
 
 type MatchesViewProps = {
   onBack: () => void;
 };
 
-type SortKey = "playedAt" | "mode" | "rule" | "stage" | "weapon" | "result" | "user" | "externalId";
+type SortKey = "playedAt" | "importedAt" | "rule" | "stage" | "weapon" | "result" | "user";
 
 type FormattedPlayer = {
   key: string;
@@ -23,7 +22,6 @@ type FormattedPlayer = {
 
 type FormattedMatch = {
   vsRuleName: string;
-  vsMode: string;
   stageName: string;
   playedTime: string;
   durationSec: number | null;
@@ -49,7 +47,6 @@ export default function MatchesView({ onBack }: MatchesViewProps) {
   const [detailMsg, setDetailMsg] = useState("");
 
   const [query, setQuery] = useState("");
-  const [filterMode, setFilterMode] = useState("");
   const [filterRule, setFilterRule] = useState("");
   const [filterResult, setFilterResult] = useState("");
   const [filterUser, setFilterUser] = useState("");
@@ -129,20 +126,31 @@ export default function MatchesView({ onBack }: MatchesViewProps) {
         a.localeCompare(b, "ja-JP")
       );
 
+    const baseRows = rows.filter((r) => isXMatchMode(r.mode));
     return {
-      modes: uniqSorted(rows.map((r) => r.mode)),
-      rules: uniqSorted(rows.map((r) => r.rule)),
-      results: uniqSorted(rows.map((r) => r.result)),
-      users: uniqSorted(rows.map((r) => r.user?.loginId ?? "")),
+      rules: uniqSorted(baseRows.map((r) => r.rule)),
+      results: uniqSorted(baseRows.map((r) => r.result)),
+      users: uniqSorted(baseRows.map((r) => r.user?.loginId ?? "")),
     };
   }, [rows]);
+  function isXMatchMode(mode: string | null | undefined) {
+    const raw = String(mode ?? "").trim();
+    if (!raw) return false;
+    const normalized = raw.replace(/\s+/g, " ").toUpperCase();
+    return (
+      normalized === "X_MATCH" ||
+      normalized === "X MATCH" ||
+      normalized.includes("X_MATCH") ||
+      normalized.includes("X MATCH")
+    );
+  }
 
   const visibleRows = useMemo(() => {
     const q = query.trim().toLowerCase();
     const containsQuery = (m: AdminMatch) => {
       if (!q) return true;
       const user = m.user?.loginId ?? "";
-      const hay = [m.externalId, m.mode, m.rule, m.stage, m.weapon, m.result, user]
+      const hay = [m.externalId, m.rule, m.stage, m.weapon, m.result, user]
         .map((v) => String(v ?? ""))
         .join(" ")
         .toLowerCase();
@@ -150,7 +158,7 @@ export default function MatchesView({ onBack }: MatchesViewProps) {
     };
 
     const filtered = rows.filter((m) => {
-      if (filterMode && (m.mode ?? "") !== filterMode) return false;
+      if (!isXMatchMode(m.mode)) return false;
       if (filterRule && (m.rule ?? "") !== filterRule) return false;
       if (filterResult && (m.result ?? "") !== filterResult) return false;
       if (filterUser && (m.user?.loginId ?? "") !== filterUser) return false;
@@ -166,8 +174,12 @@ export default function MatchesView({ onBack }: MatchesViewProps) {
       switch (sortKey) {
         case "playedAt":
           return cmpIso(a.playedAt, b.playedAt) || (a.id - b.id) * dir;
-        case "mode":
-          return cmpStr(s(a.mode), s(b.mode)) || cmpIso(a.playedAt, b.playedAt) || (a.id - b.id) * dir;
+        case "importedAt":
+          return (
+            cmpIso(a.importedAt, b.importedAt) ||
+            cmpIso(a.playedAt, b.playedAt) ||
+            (a.id - b.id) * dir
+          );
         case "rule":
           return cmpStr(s(a.rule), s(b.rule)) || cmpIso(a.playedAt, b.playedAt) || (a.id - b.id) * dir;
         case "stage":
@@ -178,15 +190,15 @@ export default function MatchesView({ onBack }: MatchesViewProps) {
           return cmpStr(s(a.result), s(b.result)) || cmpIso(a.playedAt, b.playedAt) || (a.id - b.id) * dir;
         case "user":
           return cmpStr(s(a.user?.loginId), s(b.user?.loginId)) || cmpIso(a.playedAt, b.playedAt) || (a.id - b.id) * dir;
-        case "externalId":
-          return cmpStr(s(a.externalId), s(b.externalId)) || cmpIso(a.playedAt, b.playedAt) || (a.id - b.id) * dir;
         default:
           return 0;
       }
     };
 
     return filtered.slice().sort(compare);
-  }, [filterMode, filterResult, filterRule, filterUser, query, rows, sortDir, sortKey]);
+  }, [filterResult, filterRule, filterUser, query, rows, sortDir, sortKey]);
+
+  const xRowsCount = useMemo(() => rows.filter((m) => isXMatchMode(m.mode)).length, [rows]);
 
   const parsedVs = useMemo(() => {
     if (!detail?.rawJson) return null;
@@ -202,7 +214,6 @@ export default function MatchesView({ onBack }: MatchesViewProps) {
     if (!parsedVs) return null;
 
     const vsRuleName = String(parsedVs?.vsRule?.name ?? "");
-    const vsMode = String(parsedVs?.vsMode?.mode ?? "");
     const stageName = String(parsedVs?.vsStage?.name ?? "");
     const playedTime = String(parsedVs?.playedTime ?? "");
     const durationSec = typeof parsedVs?.duration === "number" ? parsedVs.duration : null;
@@ -251,7 +262,6 @@ export default function MatchesView({ onBack }: MatchesViewProps) {
 
     return {
       vsRuleName,
-      vsMode,
       stageName,
       playedTime,
       durationSec,
@@ -303,7 +313,7 @@ export default function MatchesView({ onBack }: MatchesViewProps) {
             <div className="filterGroup">
               <label className="filterLabel">Navigation</label>
               <button type="button" className="quickBtn" onClick={onBack}>
-                管理へ戻る
+                管理に戻る
               </button>
             </div>
             <div className="filterGroup">
@@ -330,7 +340,7 @@ export default function MatchesView({ onBack }: MatchesViewProps) {
             <div className="filterGroup">
               <label className="filterLabel">Filtered</label>
               <div className="headerBadge">
-                {visibleRows.length} / {rows.length}
+                {visibleRows.length} / {xRowsCount}
               </div>
             </div>
             <div className="filterGroup">
@@ -338,20 +348,9 @@ export default function MatchesView({ onBack }: MatchesViewProps) {
               <input
                 className="filterInput"
                 value={query}
-                placeholder="mode / rule / stage / weapon / user / externalId"
+                placeholder="rule / stage / weapon / user / externalId"
                 onChange={(e) => setQuery(e.target.value)}
               />
-            </div>
-            <div className="filterGroup">
-              <label className="filterLabel">Mode</label>
-              <select className="filterSelect" value={filterMode} onChange={(e) => setFilterMode(e.target.value)}>
-                <option value="">All</option>
-                {filterOptions.modes.map((v) => (
-                  <option key={`mode-${v}`} value={v}>
-                    {v}
-                  </option>
-                ))}
-              </select>
             </div>
             <div className="filterGroup">
               <label className="filterLabel">Rule</label>
@@ -394,13 +393,12 @@ export default function MatchesView({ onBack }: MatchesViewProps) {
                 onChange={(e) => setSortKey(e.target.value as SortKey)}
               >
                 <option value="playedAt">Played At</option>
-                <option value="mode">Mode</option>
+                <option value="importedAt">Imported At</option>
                 <option value="rule">Rule</option>
                 <option value="stage">Stage</option>
                 <option value="weapon">Weapon</option>
                 <option value="result">Result</option>
                 <option value="user">User</option>
-                <option value="externalId">External ID</option>
               </select>
             </div>
             <div className="filterGroup">
@@ -452,14 +450,13 @@ export default function MatchesView({ onBack }: MatchesViewProps) {
               <table className="historyTable">
                 <thead>
                   <tr>
-                    <th>日時</th>
-                    <th>Mode</th>
+                    <th>Played At</th>
                     <th>Rule</th>
                   <th>Stage</th>
                   <th>Weapon</th>
                   <th>Result</th>
                   <th>User</th>
-                  <th>External ID</th>
+                  <th>Imported At</th>
                 </tr>
               </thead>
                 <tbody>
@@ -479,17 +476,16 @@ export default function MatchesView({ onBack }: MatchesViewProps) {
                           title="クリックで詳細表示"
                         >
                           <td className="historyDate">{formatDateTime(m.playedAt)}</td>
-                          <td className="textMuted">{m.mode || "-"}</td>
                           <td className="textMuted">{m.rule || "-"}</td>
                           <td className="historyStage">{m.stage || "-"}</td>
                           <td className="historyWeapon">{m.weapon || "-"}</td>
                           <td className={resultClass(m.result)}>{m.result || "-"}</td>
                           <td className="textMuted">{m.user?.loginId ?? "-"}</td>
-                          <td className="monoText textMuted">{m.externalId}</td>
+                          <td className="textMuted">{m.importedAt ? formatDateTime(m.importedAt) : "-"}</td>
                         </tr>
                       {active && (
                         <tr key={`detail-${m.id}`}>
-                          <td colSpan={8} style={{ padding: 0 }}>
+                          <td colSpan={7} style={{ padding: 0 }}>
                             <div className="adminCard" style={{ margin: 0, borderRadius: 0 }}>
                               <h3 className="filterTitle">詳細</h3>
                               {detailMsg && <div className="messageBox error">{detailMsg}</div>}
@@ -511,10 +507,6 @@ export default function MatchesView({ onBack }: MatchesViewProps) {
                                       <div className="historyRow">
                                         <span>Played At</span>
                                         <strong>{formatDateTime(activeDetail.playedAt)}</strong>
-                                      </div>
-                                      <div className="historyRow">
-                                        <span>Mode</span>
-                                        <strong>{activeDetail.mode || "-"}</strong>
                                       </div>
                                       <div className="historyRow">
                                         <span>Rule</span>
@@ -556,26 +548,22 @@ export default function MatchesView({ onBack }: MatchesViewProps) {
                                     {formatted && (
                                       <>
                                         <div className="adminCard" style={{ marginTop: 12 }}>
-                                          <h3 className="filterTitle">試合概要（整形）</h3>
+                                          <h3 className="filterTitle">VS Summary</h3>
                                           <div className="historyCardDetails">
                                             <div className="historyRow">
-                                              <span>ルール</span>
+                                              <span>Rule</span>
                                               <strong>{formatted.vsRuleName || activeDetail.rule || "-"}</strong>
                                             </div>
                                             <div className="historyRow">
-                                              <span>モード</span>
-                                              <strong>{formatted.vsMode || activeDetail.mode || "-"}</strong>
-                                            </div>
-                                            <div className="historyRow">
-                                              <span>ステージ</span>
+                                              <span>Stage</span>
                                               <strong>{formatted.stageName || activeDetail.stage || "-"}</strong>
                                             </div>
                                             <div className="historyRow">
-                                              <span>判定</span>
+                                              <span>Judgement</span>
                                               <strong>{formatted.judgement || activeDetail.result || "-"}</strong>
                                             </div>
                                             <div className="historyRow">
-                                              <span>スコア</span>
+                                              <span>Score</span>
                                               <strong>
                                                 {formatted.myScore !== null && formatted.otherScore !== null
                                                   ? `${formatted.myScore} - ${formatted.otherScore}`
@@ -584,7 +572,7 @@ export default function MatchesView({ onBack }: MatchesViewProps) {
                                               </strong>
                                             </div>
                                             <div className="historyRow">
-                                              <span>試合時間</span>
+                                              <span>Duration</span>
                                               <strong>
                                                 {formatted.durationSec !== null ? `${formatted.durationSec}s` : "-"}
                                               </strong>
@@ -594,14 +582,14 @@ export default function MatchesView({ onBack }: MatchesViewProps) {
                                               <strong>{formatted.playedTime ? formatDateTime(formatted.playedTime) : "-"}</strong>
                                             </div>
                                             <div className="historyRow">
-                                              <span>表彰</span>
+                                              <span>Awards</span>
                                               <strong>{formatted.awards.length ? formatted.awards.join(" / ") : "-"}</strong>
                                             </div>
                                           </div>
                                         </div>
 
                                         <div className="adminCard" style={{ marginTop: 12 }}>
-                                          <h3 className="filterTitle">チーム（整形）</h3>
+                                          <h3 className="filterTitle">Players</h3>
                                           <div className="historyTableWrapper adminTableOnly" style={{ marginTop: 8 }}>
                                             <table className="historyTable">
                                               <thead>
@@ -692,16 +680,32 @@ export default function MatchesView({ onBack }: MatchesViewProps) {
                   </summary>
                   <div className="historyCardDetails">
                     <div className="historyRow">
-                      <span>Mode</span>
-                      <strong>{m.mode || "-"}</strong>
+                      <span>Played At</span>
+                      <strong>{formatDateTime(m.playedAt)}</strong>
                     </div>
                     <div className="historyRow">
                       <span>Rule</span>
                       <strong>{m.rule || "-"}</strong>
                     </div>
                     <div className="historyRow">
+                      <span>Stage</span>
+                      <strong>{m.stage || "-"}</strong>
+                    </div>
+                    <div className="historyRow">
+                      <span>Weapon</span>
+                      <strong>{m.weapon || "-"}</strong>
+                    </div>
+                    <div className="historyRow">
+                      <span>Result</span>
+                      <strong className={resultClass(m.result)}>{m.result || "-"}</strong>
+                    </div>
+                    <div className="historyRow">
                       <span>User</span>
                       <strong>{m.user?.loginId ?? "-"}</strong>
+                    </div>
+                    <div className="historyRow">
+                      <span>Imported At</span>
+                      <strong>{m.importedAt ? formatDateTime(m.importedAt) : "-"}</strong>
                     </div>
                     <div className="historyRow">
                       <span>External ID</span>

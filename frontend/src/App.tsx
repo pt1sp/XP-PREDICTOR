@@ -1,5 +1,4 @@
-import { Suspense, lazy, useCallback, useEffect, useState } from "react";
-import "./App.css";
+﻿import { Suspense, lazy, useCallback, useEffect, useState } from "react";
 import {
   clearAuthToken,
   deleteSession,
@@ -155,7 +154,9 @@ export default function App() {
         {msg && <div className="messageBox error">{msg}</div>}
         <Suspense fallback={<div className="emptyState"><p>読み込み中...</p></div>}>
           {currentView === "predict" && <PredictView />}
-          {currentView === "record" && <RecordView onRecordSaved={handleRecordSaved} />}
+          {currentView === "record" && (
+            <RecordView onRecordSaved={handleRecordSaved} />
+          )}
           {currentView === "history" && (
             <HistoryView sessions={sessions} onDeleteSession={handleDeleteSession} />
           )}

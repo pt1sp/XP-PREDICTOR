@@ -9,7 +9,6 @@ import {
   type OfflineEvaluationResult,
   type SessionWithUser,
 } from "./api";
-import "./AdminView.css";
 
 type AdminViewProps = {
   currentUserId: number;

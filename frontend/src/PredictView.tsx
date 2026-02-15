@@ -1,4 +1,4 @@
-﻿import { useState, useMemo, useEffect, type CSSProperties } from "react";
+import { useState, useMemo, useEffect, type CSSProperties } from "react";
 import { fetchPredictionByCondition } from "./api";
 import type { Prediction, PredictionConditionInput, Rule } from "./api";
 import { STAGES, WEAPON_CATEGORIES, getWeaponCategory, getStageImagePath, getWeaponImagePath } from "./Constants";

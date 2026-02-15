@@ -109,6 +109,9 @@ function main() {
   const resultsDir = resolveResultsDir();
   const dbPath = resolveSqlitePath();
   const files = collectJsonFiles(resultsDir);
+  const userLoginId = String(process.env.XP_USER_LOGIN_ID || "").trim();
+  const shouldBackfillNullUserId =
+    String(process.env.XP_BACKFILL_NULL_MATCH_USER_ID || "").trim() === "1";
 
   if (files.length === 0) {
     console.log(`[import_s3s_results] no JSON files found: ${resultsDir}`);
@@ -117,9 +120,11 @@ function main() {
 
   const db = new Database(dbPath);
   db.pragma("foreign_keys = ON");
+
   db.exec(`
     CREATE TABLE IF NOT EXISTS matches (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
       external_id TEXT NOT NULL UNIQUE,
       played_at TEXT NOT NULL,
       mode TEXT NOT NULL DEFAULT '',
@@ -133,11 +138,31 @@ function main() {
     CREATE INDEX IF NOT EXISTS matches_played_at_idx ON matches(played_at DESC);
   `);
 
+  const matchColumns = db.prepare(`PRAGMA table_info("matches")`).all();
+  const hasUserIdColumn = Array.isArray(matchColumns) && matchColumns.some((c) => c.name === "user_id");
+  if (!hasUserIdColumn) {
+    // Support older DBs created by previous versions of this script.
+    db.exec(`ALTER TABLE matches ADD COLUMN user_id INTEGER;`);
+  }
+
+  let userId = null;
+  if (userLoginId) {
+    const row = db
+      .prepare(`SELECT id FROM users WHERE login_id = ?`)
+      .get(userLoginId);
+    userId = row?.id ?? null;
+    if (!userId) {
+      console.warn(`[import_s3s_results] XP_USER_LOGIN_ID not found in DB: ${userLoginId}`);
+    }
+  }
+
   const existsStmt = db.prepare("SELECT 1 FROM matches WHERE external_id = ?");
-  const insertStmt = db.prepare(`
-    INSERT INTO matches (external_id, played_at, mode, rule, stage, weapon, result, raw_json)
-    VALUES (@external_id, @played_at, @mode, @rule, @stage, @weapon, @result, @raw_json)
-  `);
+  const insertStmt = db.prepare(
+    `
+      INSERT INTO matches (user_id, external_id, played_at, mode, rule, stage, weapon, result, raw_json)
+      VALUES (@user_id, @external_id, @played_at, @mode, @rule, @stage, @weapon, @result, @raw_json)
+    `
+  );
 
   let imported = 0;
   let skipped = 0;
@@ -159,13 +184,18 @@ function main() {
         continue;
       }
 
-      insertStmt.run(parsed);
+      insertStmt.run({ ...parsed, user_id: userId });
       imported += 1;
     } catch (err) {
       invalid += 1;
       console.warn(`[import_s3s_results] failed: ${filePath}`);
       console.warn(err instanceof Error ? err.message : String(err));
     }
+  }
+
+  if (userId && shouldBackfillNullUserId) {
+    const result = db.prepare(`UPDATE matches SET user_id = ? WHERE user_id IS NULL`).run(userId);
+    console.log(`[import_s3s_results] backfill user_id updated=${Number(result.changes ?? 0)}`);
   }
 
   console.log(

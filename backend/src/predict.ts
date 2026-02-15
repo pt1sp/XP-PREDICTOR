@@ -1,4 +1,4 @@
-﻿export type SessionRecord = {
+export type SessionRecord = {
   id: number;
   userId: number | null;
   playedAt: Date;
